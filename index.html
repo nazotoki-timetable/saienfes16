@@ -669,18 +669,30 @@
 
     function formatSingleDate(str) {
       if (!str) return "";
-      const digits = str.replace(/\D/g, "");
-      if (digits.length === 8 && str.length === 8) {
-        return `${digits.substring(0, 4)}.${digits.substring(4, 6)}.${digits.substring(6, 8)}`;
+      const trimmed = str.trim();
+      const digitsOnly = trimmed.replace(/\D/g, "");
+      if (digitsOnly.length === 8 && /^\d{4}[\.\-\/]?\d{2}[\.\-\/]?\d{2}$/.test(trimmed)) {
+        return `${digitsOnly.substring(0, 4)}.${digitsOnly.substring(4, 6)}.${digitsOnly.substring(6, 8)}`;
       }
-      return str;
+      return trimmed;
     }
 
     function formatFesDate(rawDateStr) {
       if (!rawDateStr) return "---";
       const trimmed = String(rawDateStr).trim();
-      const parts = trimmed.split(/[-~～]/);
-      if (parts.length > 1) {
+      if (!trimmed) return "---";
+
+      let parts = null;
+      if (/[\s]+[-~～][\s]+|[~～]/.test(trimmed)) {
+        parts = trimmed.split(/[\s]+[-~～][\s]+|[~～]/);
+      } else if (/^\d{8}-\d{8}$/.test(trimmed)) {
+        parts = trimmed.split('-');
+      } else if (/^\d{4}[\.\/]\d{1,2}[\.\/]\d{1,2}-\d{1,2}[\.\/]\d{1,2}/.test(trimmed) || /^\d{4}[\.\/]\d{1,2}[\.\/]\d{1,2}-\d{4}/.test(trimmed)) {
+        const firstDash = trimmed.indexOf('-');
+        parts = [trimmed.substring(0, firstDash), trimmed.substring(firstDash + 1)];
+      }
+
+      if (parts && parts.length > 1) {
         return parts.map(part => formatSingleDate(part.trim())).join(" - ");
       }
       return formatSingleDate(trimmed);
@@ -1162,11 +1174,13 @@
           // カードごとの暗号データ
           const cardEncData = String(show["_encryptedData"] || "").replace(/'/g, "\\'");
           const onclickHandler = isCardLock ? `promptLock('${groupKey}', '${cardEncData}', event)` : `toggleShow('${showId}', event)`;
+          const isSelected = selectedIds.includes(showId);
+          const selectedCardClass = isSelected ? "selected-card" : "";
 
           colHtml += `
           <div onclick="${onclickHandler}" id="card-${showId}"
                style="${cardStyle}"
-               class="absolute left-2 right-2 p-0.5 transition-all duration-300 flex flex-col items-center justify-center timetable-card border border-slate-200 ${soldOutClass} hover:brightness-95 ${cardNoiseClass} ${lockedStateClass}">
+               class="absolute left-2 right-2 p-0.5 transition-all duration-300 flex flex-col items-center justify-center timetable-card border border-slate-200 ${soldOutClass} hover:brightness-95 ${cardNoiseClass} ${lockedStateClass} ${selectedCardClass}">
             ${cardNoiseLayer}
             ${soldOutBadge}
             ${cardLockBadge}
@@ -1194,7 +1208,9 @@
         checkCount++;
         if (checkCount >= 10) clearInterval(syncInterval); // 5秒後（10回確認後）に監視を完全ストップ
       }, 500);
-    } //
+
+      updateUI();
+    }
 
     function toggleShow(id, event) {
       if (event) event.stopPropagation();
@@ -1323,14 +1339,18 @@
         const dayA = a["日程"] || "1日目";
         const dayB = b["日程"] || "1日目";
         if (dayA !== dayB) {
-          return dayA.localeCompare(dayB);
+          return dayA.localeCompare(dayB, undefined, { numeric: true });
         }
         const tA = (a["開始時間(hh:mm)"] || a.start) || "";
         const tB = (b["開始時間(hh:mm)"] || b.start) || "";
-        return timeToMinutes(tA) - timeToMinutes(tB);
+        const diff = timeToMinutes(tA) - timeToMinutes(tB);
+        if (diff !== 0) return diff;
+        const endDiff = timeToMinutes(a.endTime || a.end) - timeToMinutes(b.endTime || b.end);
+        if (endDiff !== 0) return endDiff;
+        return (a["公演名"] || "").localeCompare(b["公演名"] || "");
       });
 
-      const uniqueDays = [...new Set(sel.map(s => s["日程"] || "1日目"))].sort();
+      const uniqueDays = [...new Set(sel.map(s => s["日程"] || "1日目"))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
       const dayLabels = uniqueDays.map(dayStr => {
         const match = dayStr.match(/(\d+)日目/);
         if (match) {
@@ -1349,20 +1369,34 @@
       }
 
       let overlap = false;
-      for (let i = 0; i < sel.length - 1; i++) {
-        const d1 = sel[i]["日程"] || "1日目";
-        const d2 = sel[i + 1]["日程"] || "1日目";
-        if (d1 !== d2) continue;
-        const t1 = sel[i]["予約形式"] || "";
-        const t2 = sel[i + 1]["予約形式"] || "";
-        if (t1 === "当日受付(ファミレス式)" || t1 === "事前予約(時間自由)" || t2 === "当日受付(ファミレス式)" || t2 === "事前予約(時間自由)") continue;
-        const end1 = timeToMinutes(sel[i].endTime || sel[i].end);
-        const start2 = timeToMinutes(sel[i + 1]["開始時間(hh:mm)"] || sel[i + 1].start);
-        if (config.allowZeroMinTransfer) {
-          if (end1 > start2) overlap = true;
-        } else {
-          if (end1 >= start2) overlap = true;
+      const timedSel = sel.filter(s => {
+        const t = s["予約形式"] || "";
+        return t !== "当日受付(ファミレス式)" && t !== "事前予約(時間自由)";
+      });
+      for (let i = 0; i < timedSel.length; i++) {
+        for (let j = i + 1; j < timedSel.length; j++) {
+          const s1 = timedSel[i];
+          const s2 = timedSel[j];
+          const d1 = s1["日程"] || "1日目";
+          const d2 = s2["日程"] || "1日目";
+          if (d1 !== d2) continue;
+          const start1 = timeToMinutes(s1["開始時間(hh:mm)"] || s1.start);
+          const end1 = timeToMinutes(s1.endTime || s1.end);
+          const start2 = timeToMinutes(s2["開始時間(hh:mm)"] || s2.start);
+          const end2 = timeToMinutes(s2.endTime || s2.end);
+          if (config.allowZeroMinTransfer) {
+            if ((start1 < end2 && end1 > start2) || (start2 < end1 && end2 > start1)) {
+              overlap = true;
+              break;
+            }
+          } else {
+            if ((start1 <= end2 && end1 >= start2) || (start2 <= end1 && end2 >= start1)) {
+              overlap = true;
+              break;
+            }
+          }
         }
+        if (overlap) break;
       }
       banner.classList.toggle('hidden', !overlap);
       sel.forEach(s => {
