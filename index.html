@@ -1,0 +1,1723 @@
+<!--
+  ==========================================================================
+  【開発者からのメッセージ】
+  このタイムテーブル（ハシゴ計画）作成ツールは、イベントやフェスを
+  もっと熱く、もっと快適に楽しむために作りました。
+  皆さんのハシゴ計画がより素晴らしいものになることを心から願っています！
+  もし気に入っていただけたら、クレジットを残したまま
+  自由にカスタマイズして活用してください。
+
+  皆様に、謎が解けた時の、あの素晴らしい瞬間が少しでも沢山訪れますように
+
+  Created by テレスコープ
+  ==========================================================================
+  Copyright (c) 2026 テレスコープ
+  Released under the MIT license
+  https://opensource.org/licenses/mit-license.php
+  ==========================================================================
+-->
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            main: 'var(--main-color)',
+            accent: 'var(--accent-color)'
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Serif+JP:wght@900&family=Noto+Sans+JP:wght@700;900&display=swap"
+    rel="stylesheet" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,700,0,0"
+    rel="stylesheet" crossorigin="anonymous" />
+  <style>
+    :root {
+      --main-color: #1f2937;
+      /* デフォルト：ダークグレー */
+      --accent-color: #facc15;
+      /* デフォルト：イエロー */
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* 1. タイトル（Noto Serif JP） */
+    .fancy-title {
+      font-family: 'Noto Serif JP', serif !important;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -0.02em;
+      filter: drop-shadow(0 2px 4px rgba(18, 59, 83, 0.15));
+    }
+
+    /* 2. タイトルの可読性を高めるカード */
+    .title-banner-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-top: 1px solid rgba(255, 255, 255, 1);
+      border-left: 1px solid rgba(255, 255, 255, 1);
+      box-shadow: 0 25px 50px -12px rgba(18, 59, 83, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+      border-radius: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .title-banner-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+      pointer-events: none;
+    }
+
+    /* 3. カードデザイン：沈み込みアニメ */
+    .timetable-card {
+      border-radius: 4px;
+      border-width: 1px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .timetable-card:active {
+      transform: scale(0.96);
+    }
+
+    /* 選択時のカード装飾 */
+    .selected-card {
+      transform: translateY(-4px) !important;
+      box-shadow: 0 15px 30px -5px rgba(18, 59, 83, 0.2);
+      border-color: var(--main-color) !important;
+      border-width: 2px !important;
+      z-index: 30 !important;
+    }
+
+    /* 0分移動禁止・被り警告アニメーション */
+    .conflict {
+      border-color: #991b1b !important;
+      /* より濃い赤 */
+      background-color: #fef2f2 !important;
+      animation: pulse-danger 2s infinite;
+    }
+
+    @keyframes pulse-danger {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(153, 27, 27, 0.4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 10px rgba(153, 27, 27, 0);
+      }
+    }
+
+    /* 4. 背景テクスチャ */
+    .main-bg {
+      background-color: #f8fafc;
+      background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* タイムテーブルの列（横幅の自動調整） */
+    .venue-col {
+      width: max-content;
+      /* 中身の最大サイズに幅を固定 */
+      flex: 0 0 auto;
+      position: relative;
+      background-image: linear-gradient(#e2e8f0 1px, transparent 1px);
+      background-size: 100% 35px;
+      background-position: 0 240px;
+      background-repeat: repeat-y;
+      transition: opacity 0.3s ease;
+    }
+
+    /* 上部スクロールバーの装飾 */
+    #top-scrollbar-wrapper {
+      overflow-x: auto;
+      overflow-y: hidden;
+      height: 16px;
+    }
+
+    #top-scrollbar-content {
+      height: 16px;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ヘッダー背景画像 */
+    .header-image-box {
+      background-size: cover;
+      background-position: center;
+    }
+
+    .header-overlay {
+      background: linear-gradient(180deg, rgba(241, 245, 249, 0.3) 0%, rgba(241, 245, 249, 1) 100%);
+    }
+
+    #my-schedule-modal,
+    #howto-modal {
+      backdrop-filter: blur(12px);
+    }
+
+    .hashigo-card {
+      border-left: 6px solid #2563eb;
+    }
+
+    /* --- モヤ（霧）演出アニメーション --- */
+    @keyframes mystic-pulse {
+
+      0%,
+      100% {
+        opacity: 0.3;
+        filter: blur(2px);
+      }
+
+      50% {
+        opacity: 0.6;
+        filter: blur(4px);
+      }
+    }
+
+    @keyframes mystic-drift {
+      0% {
+        background-position: 0 0;
+      }
+
+      100% {
+        background-position: 100% 100%;
+      }
+    }
+
+    .mystic-shimmer {
+      position: absolute;
+      inset: -10px;
+      pointer-events: none;
+      border-radius: inherit;
+      background: url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJub2lzZUZpbHRlciI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuOCIgbnVtT2N0YXZlcz0iNCIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNub2lzZUZpbHRlcikiLz48L3N2Zz4=');
+      mix-blend-mode: soft-light;
+      opacity: 0.85;
+      animation: mystic-pulse 4s ease-in-out infinite, mystic-drift 30s linear infinite;
+      z-index: 20;
+    }
+
+    .mystic-text {
+      color: transparent !important;
+      text-shadow: 0 0 15px rgba(15, 23, 42, 0.95), 0 0 5px rgba(15, 23, 42, 0.8) !important;
+      filter: blur(8px);
+      letter-spacing: -2px;
+      user-select: none;
+    }
+
+    .card-locked-state {
+      filter: grayscale(85%) opacity(0.85);
+      transition: filter 0.5s ease;
+    }
+
+    .program-visual {
+      height: 110px;
+      /* width: 各MV本来の比率に合わせて幅が個別調整 */
+      width: auto;
+      max-width: 85px;
+      /* 異常に横長・正方形な画像が来た時のストッパー、全体の列幅を揃える役割 */
+      object-fit: contain;
+      border-radius: 4px;
+      flex-shrink: 0;
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ==========================================
+       PDF・画像作成モード用CSS（巨大な1枚画像用）
+    ========================================== */
+    .pdf-mode {
+      background-color: white !important;
+      overflow: visible !important;
+      width: max-content !important;
+    }
+
+    .pdf-mode #header-bg,
+    .pdf-mode .guide-area-wrapper,
+    .pdf-mode #status-area,
+    .pdf-mode #top-scrollbar-wrapper,
+    .pdf-mode .admin-ui,
+    .pdf-mode footer,
+    .pdf-mode #selection-bar,
+    .pdf-mode .reserve-btn-area {
+      display: none !important;
+    }
+
+    .pdf-mode .max-w-\[1800px\] {
+      max-width: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    .pdf-mode #table-container {
+      overflow: visible !important;
+      display: flex !important;
+      width: max-content !important;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+
+    .pdf-mode .sticky,
+    .pdf-mode .timetable-header {
+      position: relative !important;
+      top: 0 !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background-color: white !important;
+      height: 230px !important;
+      z-index: auto !important;
+    }
+
+    @media print {
+      @page {
+        size: auto;
+        margin: 0;
+      }
+
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+
+    /*Material Symbolsの太さや高さをテキストに合わせる調整 */
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 700, 'GRAD' 0, 'opsz' 20;
+      line-height: 1;
+      vertical-align: -0.15em;
+
+    }
+  </style>
+</head>
+
+<body id="body-tag" class="main-bg text-slate-900 antialiased leading-tight">
+
+  <!-- メンテナンスモード表示エリア -->
+  <div id="maintenance-screen"
+    class="hidden fixed inset-0 z-[999] bg-slate-900 flex flex-col items-center justify-center p-6 text-white min-h-screen">
+    <span class="material-symbols-outlined text-6xl text-slate-400 mb-6 animate-pulse">construction</span>
+    <h1 class="text-2xl md:text-4xl font-black mb-4 tracking-wider">UNDER MAINTENANCE</h1>
+    <p id="maintenance-message" class="text-slate-300 text-center text-sm md:text-base leading-relaxed max-w-lg">
+      只今準備中です。公開までしばらくお待ちください</p>
+  </div>
+
+  <div id="app-container" class="transition-opacity duration-300">
+    <div id="header-bg" class="header-image-box relative">
+      <header
+        class="header-overlay relative pt-6 pb-8 md:pt-16 md:pb-16 px-4 md:px-6 flex flex-col items-center text-center overflow-hidden">
+
+        <div
+          class="title-banner-card z-10 py-3 px-3 md:py-10 md:px-8 max-w-4xl w-full text-center transition-all hover:-translate-y-1 duration-500">
+
+          <div class="flex justify-center items-center gap-3 mb-4 md:mb-6">
+            <div class="h-[2px] w-12 bg-gradient-to-r from-transparent to-accent"></div>
+            <div
+              class="px-4 py-1.5 text-[8px] sm:text-[10px] font-black tracking-[0.4em] text-white bg-main rounded-full uppercase shadow-md border border-main/20">
+              TIMETABLE
+            </div>
+            <div class="h-[2px] w-12 bg-gradient-to-l from-transparent to-accent"></div>
+          </div>
+
+          <h1 id="fes-title"
+            class="fancy-title text-xl sm:text-2xl md:text-4xl lg:text-5xl text-main mb-1 md:mb-6 drop-shadow-sm leading-tight">
+            読み込み中...</h1>
+
+          <div class="flex justify-center items-center gap-4 relative z-10">
+            <p id="fes-subtitle"
+              class="text-slate-500 font-bold text-[8px] md:text-sm tracking-[0.1em] uppercase bg-white/60 px-2 py-1 md:px-4 md:py-1.5 rounded-full border border-white shadow-sm">
+              データ取得中</p>
+          </div>
+        </div>
+
+      </header>
+    </div>
+
+    <div class="relative max-w-[1800px] mx-auto px-6 pb-40">
+
+      <div class="relative guide-area-wrapper mb-1.5 md:mb-4">
+        <div class="flex flex-col md:flex-row justify-start items-start md:items-center gap-3 w-full">
+          <div class="flex flex-nowrap items-center gap-2">
+            <button onclick="document.getElementById('howto-modal').classList.remove('hidden')"
+              class="bg-main hover:opacity-90 text-white text-[11px] font-[900] px-4 py-2.5 md:px-5 rounded-full shadow-xl transition-all flex items-center gap-2 uppercase tracking-widest active:scale-95 border-2 border-white">
+              <span
+                class="bg-accent text-main w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black italic">?</span>使い方</button>
+          </div>
+
+          <!-- 複数日程切り替えタブ -->
+          <div id="day-tabs-container"
+            class="hidden bg-white/80 backdrop-blur-md p-1 rounded-full shadow-inner border border-slate-200 flex gap-1 items-center overflow-x-auto no-scrollbar">
+          </div>
+
+          <!-- タイプフィルターボタン -->
+          <div id="filter-buttons-container"
+            class="bg-white/50 backdrop-blur-md p-1 rounded-full shadow-inner border border-slate-200 flex gap-1 items-center overflow-x-auto no-scrollbar">
+          </div>
+        </div>
+      </div>
+
+      <div id="status-area" class="text-center py-2">
+        <p id="loading-msg" class="text-slate-400 font-medium animate-pulse text-xs uppercase tracking-widest">
+          Deciphering
+          riddles...</p>
+        <div id="error-msg"
+          class="hidden max-w-xl mx-auto bg-rose-50 border border-rose-100 p-6 rounded-3xl text-[#c5304b] font-bold text-sm">
+        </div>
+      </div>
+
+      　　　<div class="max-md:[zoom:0.77]">
+
+        <div id="top-scrollbar-wrapper" class="mb-2 hidden">
+          <div id="top-scrollbar-content"></div>
+        </div>
+
+        <div id="table-container"
+          class="hidden overflow-x-auto overflow-y-hidden bg-white rounded-3xl shadow-xl border border-slate-200 relative text-center">
+          <div class="flex w-max">
+            <div id="time-axis-col" class="w-20 flex-none bg-slate-50/50 border-r border-slate-200 pt-[230px]">
+              <div id="time-axis" class="text-[11px] font-black text-slate-300"></div>
+            </div>
+            <div id="timetable-grid" class="flex"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flex justify-between items-center mt-4 px-2 admin-ui">
+        <button id="hide-shows-btn" onclick="openHideShowsModal()"
+          class="text-main/60 hover:text-main text-[10px] font-black uppercase border border-main/10 bg-white/50 px-3 py-1.5 rounded-md transition-all flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">visibility_off</span>
+          <span id="hide-shows-btn-text">公演の表示・非表示設定</span>
+        </button>
+        <button onclick="togglePdfMode()"
+          class="text-main/60 hover:text-main text-[10px] font-black uppercase border border-main/10 bg-white/50 px-3 py-1.5 rounded-md transition-all">
+          📄 PDF・画像作成モード
+        </button>
+      </div>
+
+      <footer id="dev-footer"
+        class="mt-40 mb-10 text-center border-t border-slate-200/60 pt-10 text-slate-400 select-none">
+        <p class="text-[8px] font-black tracking-[0.3em] uppercase mb-2">Developed by</p>
+        <p class="text-[7px] font-black text-main tracking-tighter uppercase">テレスコープ</p>
+      </footer>
+    </div> <!-- /内包みコンテナ -->
+  </div> <!-- /app-container -->
+
+
+
+  <div id="selection-bar"
+    class="fixed bottom-3 left-3 right-3 md:bottom-6 md:left-6 md:right-6 max-w-6xl mx-auto bg-main text-white p-3 pb-4 md:p-5 shadow-[0_10px_40px_rgba(0,0,0,0.4)] z-50 transform translate-y-64 transition-transform duration-500 rounded-2xl md:rounded-3xl border border-white/20">
+    <div class="w-full">
+      <div id="conflict-warning"
+        class="hidden text-rose-300 font-bold text-[10px] md:text-xs mb-2 md:mb-3 flex items-center gap-1 animate-bounce">
+        <span class="material-symbols-outlined text-[13px] md:text-[15px]">error</span>
+        <span>このチョイスだと時間が被っててハシゴ出来ないよ！</span>
+      </div>
+      <div class="flex flex-col lg:flex-row gap-2 md:gap-4 items-center justify-between">
+        <div id="selected-items"
+          class="flex gap-2 md:gap-3 overflow-x-auto pb-1 pt-1 no-scrollbar justify-start items-center w-full">
+        </div>
+        <div class="flex items-center gap-4 w-full lg:w-auto shrink-0 justify-end mt-1 md:mt-0">
+          <button onclick="clearSelection()"
+            class="text-[10px] md:text-xs font-black tracking-widest opacity-60 hover:opacity-100 transition-opacity uppercase drop-shadow-md">RESET</button>
+          <button onclick="showHashigoTable()"
+            class="bg-white text-main px-4 py-2.5 md:px-6 md:py-3 rounded-lg md:rounded-xl font-black text-xs md:text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 border border-main/10 whitespace-nowrap">
+            ハシゴテーブルを表示
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="howto-modal"
+    class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+    <div
+      class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative border border-white/20 text-center">
+      <button onclick="this.closest('#howto-modal').classList.add('hidden')"
+        class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 text-2xl w-8 h-8 flex items-center justify-center">&times;</button>
+      <h2 class="font-black text-xl mb-8 italic tracking-tighter text-main uppercase">How to Use</h2>
+
+      <div class="space-y-6 text-left text-sm text-slate-600 border-t pt-8">
+        <div class="font-bold flex gap-4 items-start"><span
+            class="bg-main text-white w-6 h-6 rounded-full flex-none font-black text-xs flex items-center justify-center shadow-lg">1</span>
+          <p>気になる公演をタップしてセレクト！</p>
+        </div>
+        <div class="font-bold flex gap-4 items-start"><span
+            class="bg-main text-white w-6 h-6 rounded-full flex-none font-black text-xs flex items-center justify-center shadow-lg">2</span>
+          <p>「ハシゴテーブルを表示」をタップ！</p>
+        </div>
+        <div class="font-bold flex gap-4 items-start"><span
+            class="bg-main text-white w-6 h-6 rounded-full flex-none font-black text-xs flex items-center justify-center shadow-lg">3</span>
+          <p>自分用ハシゴテーブルが出来るよ！計画を立てたり当日の移動に役立ててね！</p>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-4 border-t border-dashed border-slate-100 text-left">
+        <p class="text-[12px] text-main opacity-70 italic leading-tight">
+          ※このハシゴテーブルは公演予約ではございません。予約は各公演の予約ページから。</p>
+      </div>
+      <button onclick="this.closest('#howto-modal').classList.add('hidden')"
+        class="w-full mt-10 bg-main text-white py-4 rounded-xl font-[900] shadow-lg text-[10px] uppercase tracking-widest">了解！</button>
+    </div>
+  </div>
+
+
+  <div id="my-schedule-modal"
+    class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
+    <div class="w-full max-w-sm flex flex-col max-h-[95vh]">
+      <div class="flex justify-end mb-2">
+        <button onclick="closeModal()"
+          class="text-white hover:text-slate-200 text-3xl font-light w-10 h-10 flex items-center justify-center">&times;</button>
+      </div>
+
+      <div id="capture-area"
+        class="bg-[#f9f7f1] p-7 relative overflow-hidden rounded-[2.5rem] shadow-2xl border-4 border-main flex-1 overflow-y-auto no-scrollbar">
+
+        <div class="border-b-2 border-dashed border-accent pb-5 mb-6 relative z-10 text-center">
+          <h3 id="modal-fes-title" class="font-black text-main text-lg mb-2">---</h3>
+          <img id="modal-fes-logo" src="" alt="Logo" class="hidden w-48 md:w-56 h-auto mx-auto mb-2 object-contain">
+          <div id="modal-fes-date" class="text-[10px] font-bold text-slate-500 tracking-[0.3em] block uppercase">---
+          </div>
+        </div>
+
+        <div id="modal-conflict-banner"
+          class="hidden mb-5 p-3 bg-rose-50 rounded-xl text-rose-500 text-[10px] md:text-[11px] font-black border border-rose-200 relative z-10 flex items-center justify-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-[14px] md:text-[16px] animate-pulse">error</span>
+          <span>このチョイスだと時間が被っててハシゴ出来ないよ！</span>
+        </div>
+
+        <div id="hashigo-list" class="space-y-3.5 relative z-10"></div>
+
+        <div class="mt-8 pt-4 border-t-2 border-dashed border-slate-300 text-center relative z-10">
+          <div id="modal-hashtag" class="text-base font-black text-main tracking-wider opacity-80">#ハッシュタグ</div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3 mt-4">
+        <button id="share-btn" onclick="shareScheduleImage()"
+          class="w-full bg-main text-white py-3.5 rounded-xl font-[900] text-sm shadow-xl hover:opacity-90 active:scale-95 transition-all flex justify-center items-center flex-col leading-tight">
+          <span class="flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px]">share</span>SNSでシェアする
+          </span>
+        </button>
+
+        <button id="download-btn" onclick="downloadScheduleImage()"
+          class="w-full bg-white text-main py-3 rounded-xl font-[900] text-sm shadow-sm active:scale-95 transition-all border-2 border-main border-opacity-20 flex justify-center items-center gap-1.5">
+          <span class="material-symbols-outlined text-[18px]">download</span>画像を保存する
+        </button>
+        <div id="ios-share-guide"
+          class="hidden mt-2 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center flex flex-col gap-2">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 公演の表示・非表示設定モーダル -->
+  <div id="hide-shows-modal"
+    class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+    <div
+      class="bg-[#f1f5f9] w-full max-w-md rounded-md p-8 md:p-10 shadow-2xl relative border border-slate-200/50 text-center flex flex-col max-h-[90vh]">
+      <button onclick="closeHideShowsModal()"
+        class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 text-2xl w-8 h-8 flex items-center justify-center">&times;</button>
+
+      <div class="flex flex-col items-center justify-center gap-1.5 mb-6">
+        <div class="flex items-center gap-2">
+          <h2 class="font-black text-xl italic tracking-tighter text-main uppercase">公演の表示・非表示設定</h2>
+        </div>
+      </div>
+
+      <div
+        class="text-xs font-bold text-slate-500 mb-5 leading-relaxed text-left bg-white p-3.5 rounded-md border border-slate-200 flex items-start gap-2 shadow-sm">
+        <div>
+          <span class="text-main">ハシゴ計画を立てやすくするために、表示する公演を整理できます。</span><br>
+          表示したい公演にチェックを入れ、非表示にしたい公演のチェックを外してください。
+        </div>
+      </div>
+
+      <div class="flex justify-end mb-3">
+        <button onclick="resetHideShowsModal()"
+          class="text-[10px] font-black tracking-widest text-main/60 hover:text-main hover:bg-slate-100 transition-colors uppercase border border-slate-200 bg-white px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm">
+          <span class="material-symbols-outlined text-[14px]">restart_alt</span>すべての公演を表示
+        </button>
+      </div>
+
+      <!-- 公演リスト (スクロールエリア) -->
+      <div id="hide-shows-list"
+        class="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-1 text-left border-y border-slate-200/60 py-4 max-h-[50vh]">
+        <!-- JSで動的に生成 -->
+      </div>
+
+      <button onclick="applyHiddenShows()"
+        class="w-full mt-6 bg-main text-white py-4 rounded-md font-[900] shadow-lg text-[11px] uppercase tracking-widest active:scale-95 transition-all">設定を適用する</button>
+    </div>
+  </div>
+
+
+
+
+
+  <script>
+    // ▼▼▼ API URL：ここにGASのURLを設定してください ▼▼▼
+    const API_URL = 'https://script.google.com/macros/s/AKfycbw9ZPVVjO_1t8mTxSeTBodAYbZMLBx3Zcilh8HtEONoUwenw32NQAynq00NKVojRfO7bw/exec';
+    // ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲
+
+    /**
+     * Google Drive の共有リンクを直リンクまたはサムネイル用URLに変換する
+     * @param {string} url - 変換前のURL
+     * @param {boolean} asThumbnail - サムネイル用（サイズ1000px制限）に変換するかどうか
+     * @returns {string} 変換後のURL
+     */
+    function convertDriveUrl(url, asThumbnail = false) {
+      if (!url) return "";
+      let id = "";
+      if (url.includes("drive.google.com")) {
+        const fileDMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+        if (fileDMatch) {
+          id = fileDMatch[1];
+        } else {
+          const openIdMatch = url.match(/[\?&]id=([a-zA-Z0-9_-]+)/);
+          if (openIdMatch) {
+            id = openIdMatch[1];
+          }
+        }
+      }
+      if (id) {
+        const size = asThumbnail ? "w1000" : "w2000";
+        return `https://drive.google.com/thumbnail?id=${id}&sz=${size}`;
+      }
+      return url;
+    }
+
+    let config = {};
+    let allShows = [];
+    let selectedIds = [];
+    let heatmapData = {};
+    let heatmapDebounceTimer = null;
+    const hiddenShowTitles = new Set();
+
+    const HEADER_OFFSET = 240;
+    const PIXELS_PER_HOUR = 70;
+
+    /*
+       【ロゴの直接埋め込み】
+       iPhone等での保存を安定させるため、ロゴ画像をBase64形式でここに貼ることができます。
+       ここにデータがある場合、スプレッドシートの設定よりも優先されます。
+    */
+    const CUSTOM_LOGO_BASE64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t+KAAAAtGVYSWZJSSoACAAAAAYAEgEDAAEAAAABAAAAGgEFAAEAAABWAAAAGwEFAAEAAABeAAAAKAEDAAEAAAACAAAAEwIDAAEAAAABAAAAaYcEAAEAAABmAAAAAAAAAGAAAAABAAAAYAAAAAEAAAAGAACQBwAEAAAAMDIxMAGRBwAEAAAAAQIDAACgBwAEAAAAMDEwMAGgAwABAAAA//8AAAKgBAABAAAA9AEAAAOgBAABAAAA9AEAAAAAAAAA4cNEAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAGAmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI2LTA0LTA5PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkRhdGE+eyZxdW90O2RvYyZxdW90OzomcXVvdDtEQUhHUnFITG1INCZxdW90OywmcXVvdDt1c2VyJnF1b3Q7OiZxdW90O1VBRkhnZUFJRGZ3JnF1b3Q7LCZxdW90O2JyYW5kJnF1b3Q7OiZxdW90O2tpenVuYW7jgZXjgpPjga7jg4Hjg7zjg6AmcXVvdDssJnF1b3Q7dGVtcGxhdGUmcXVvdDs6JnF1b3Q7ZGctOWQ4YmM2ZTctYmMxNS00OTcwLTllNTEtMTc4YTNkYTZjNThkLUVBRzQ4NldGMHU0JnF1b3Q7fTwvQXR0cmliOkRhdGE+CiAgICAgPEF0dHJpYjpFeHRJZD4zNjVlZTE5Yy02OGM2LTQxNzAtOTMzZS1jMmJlNGZhNDk5MDQ8L0F0dHJpYjpFeHRJZD4KICAgICA8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4KICAgICA8QXR0cmliOlRvdWNoVHlwZT4yPC9BdHRyaWI6VG91Y2hUeXBlPgogICAgPC9yZGY6bGk+CiAgIDwvcmRmOlNlcT4KICA8L0F0dHJpYjpBZHM+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOmRjPSdodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyc+CiAgPGRjOnRpdGxlPgogICA8cmRmOkFsdD4KICAgIDxyZGY6bGkgeG1sOmxhbmc9J3gtZGVmYXVsdCc+5Li45Z6L44K144Oz44OX44Or44Ot44K077yIMToxIFBOR++8iSAtIDE8L3JkZjpsaT4KICAgPC9yZGY6QWx0PgogIDwvZGM6dGl0bGU+CiA8L3JkZjpEZXNjcmlwdGlvbj4KCiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0nJwogIHhtbG5zOnBkZj0naHR0cDovL25zLmFkb2JlLmNvbS9wZGYvMS4zLyc+CiAgPHBkZjpBdXRob3I+a2l6dW5hbjwvcGRmOkF1dGhvcj4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6eG1wPSdodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvJz4KICA8eG1wOkNyZWF0b3JUb29sPkNhbnZhIGRvYz1EQUhHUnFITG1INCB1c2VyPVVBRkhnZUFJRGZ3IGJyYW5kPWtpenVuYW7jgZXjgpPjga7jg4Hjg7zjg6AgdGVtcGxhdGU9ZGctOWQ4YmM2ZTctYmMxNS00OTcwLTllNTEtMTc4YTNkYTZjNThkLUVBRzQ4NldGMHU0PC94bXA6Q3JlYXRvclRvb2w+CiA8L3JkZjpEZXNjcmlwdGlvbj4KPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KPD94cGFja2V0IGVuZD0ncic/PvIFnc0AACAASURBVHic7d0J3Hxj/f/xTyV7haLsS6nIlp2Ur30rIiVSlmixVCKyL9EiFEpIIVtCokIpX0okS5Eo6zdbliJb2n//6/2/5upcc+7Z55xznZl5PR+Pz4Pvfc+c85mZ+5zPnOtcixkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAQSzgYk0XW7jY0cVeLg53cYKLs1z8wMXPXNzo4rcu7nbxkIs/u3jOxf814rnGzx5sPOa3jefoud9vbOuExrY/4WIHF5u7WMPF/GW/SAAAxsGSLt7u4uMujjdfYO9w8YJlBTl1/M3F7S4udfFlFx9zsamL15bwfgAAUGtLmC/cn3ZxtoubrbiCq+L/lIs/ubjP/BcCbf/aRtzc+Nl9jcc8VfC+f+XiTBf7utjExaIFvWcAACSn5upPmW8W/6v1XyR/Z/6K+DgX+7n4kIt3u1jfxYouFncxVwF5zm3+y8ZKjW2/u7Ev7fNLjfzv6DN/xV9cfM/8bYJVCsgTAIBKrOPiUBdXmW+i7qXo3ePiEhefMX+P/K0uFqw4734s5GJtFzu7OMr87QFd9ffyWp918SMXB7l4S9WJAwDQjq5qdzdf1LoVcBWzK1wcY75wr+xi1sozLs9sLlYzX+h1VX+ldX9PnnZxoYtdzX9RAACgMuoI9hUXv7fuxepi883NKyXJtB5020H31dVsry81nd4zdbo71sV6STIFAIy1OVy8x8U51jwMLB8aEnaRiz1cLJck09GgLzefNH+boVO/AnXa+6b5oXMAAAzkFS4+YL5DV7uhY0+Yby5WAV/GxYuSZDraXuzizeZbMdT5r13P+2dcnGe+s97sSTIFAIwUdWpT4Wh31fhHF0cYV+BlUt+CL7h41Fp/Brov//XG4wAA+B8N+9IV4p3Wvun3VPO9z1EdXb1vYH4Gu+et9Wdzk4tdjKt2AJhomk5Vk7u0uxpXJ66tk2WHmPoxbO9iurX+rNS34RQXS6dKEABQLV31vcvF9da6MNxqvsPWq1IliK4WNj+OXfPRt/oMNTSQXvIAMKbUJLuni3utdec2zZ++YrLsMChNTnOa+U5z+c/1N+av6mdKlh0AoDDzmZ/IRWPC8yd8zT1Ok/p40KQ2O1nruQEeNt9HYs5k2QEABqZCrglK8jOV/dfFD11MS5YZyqShgxq3rsVo8oVd88ofYBR2ABgJuvetK/J8r+h/ujjDxRuSZYaqaVib5hHQl7j8BEBa7Y6e8QBQQyrkX7TWc4efYPVe7ATleqP5Wf5a9Z3QlLQUdgCoAXV42semdorSFbnGjlPIEWhIm2b2y1+xP+Jiu4R5AcDEUw/nu6z55PxvF6e7WCRhXqi3Zc1PM5u/Yv+FMY4dACo1v7VuQj3fxesS5oXRonvsrSaq+bKLlyfMCwAmgnop5++T3+hi9ZRJYaRtYVPnJ9A88u9PmRQAjKu3ubjHmk+6D5qfOIRVzjCsl7rY26Yu56pmeEZGAEAB5nXxLZs6b/chLmZNmBfGk0ZLnGS+L0bcwfIo4+8NAAaiq+4Pu3jSmou57nkunDAvTIaVbOqscw+42ChlUgAwatTE+UtrPplqopiPpkwKE+lzNrXT3LnG4j0A0NWuNnWWN67KkVKrq3V1mlsnZVIAUFevcHGxTb1XvlvKpICGmV18wZrvrWuCGl3Bs5obADSsZf7+ZL538RIpkwJaWNOmDnG7ycViCXMCgFo4wqbeo/x00oyAzrRa2zes+W9WUw9vkzIpAEhlLhc/teaT4h3mp+UERsHGLh6z5r/hE40meAATZHkXMyw7Cf7H/JKnMyfMCRjEK23qvPDXm58/AQDGmpol/27Zye8vLtZPmhEwPHXe/Ic1r+C2UtKMAKAkL3FxvDVfydxgLG+K8fFmF3+07O9bBZ754AGMFQ1Ju9qai/mxKRMCSjK3i8ut+W/9q0kzAoCCaF3yP1hzb+DNk2YElEvTFh9ovm9I+Lu/zMXsKZMCgGHoHmLcC1jNkUsmzQiozobWvNSvxqvTWQ7AyNEiFi9YdjL7tXEyw+RZwcXjlh0HM4zlWAGMEM3HHjc3Xmk0N2JyLeriHsuOB625vkbSjACgB4dbc4egs833cAcm2TwubrTsuNDQzc2SZgQAHXzJmov5YUmzAeplVvOd48Lx8S8XWybNCABy1Ks3nttaq1DtmjQjoJ5ebL7VKhwrWr3tvUkzAoCG/Anqny62SpoRUG/6Ahy3ZvEFGEByWoTie5admDREZ52kGQGj4wBrvkW1R9p0AEwqXZlfbNnJ6CkXqybNCBg9HzV/hR6Oo4+kTQfAJPqmZSchjbNdJm06wMja1pqv1HdImw6ASXKqNV+ZvyltOsDIU1EPV+rqKPeutOkAmASfsayYaya4VdKmA4wNNbfHQ9o2TJsOgHGmTjuccIDyHGnNX5jXTJsOgHG0izXf59s6bTrA2DrZsuPsaRfLp00HwDjZ2JrnZt8xaTbAeNMIkgstO94eNb8MMQAMRUPR4lXTDkmbDjARXuriGsuOOy3uMlfSjACMNC3zqF7s4aRyVtp0gInychd3Wnb83WB+PngA6MsCLh627GTyU2PVNKBqC7p4yLLj8HLjOATQB61dfrtlJ5GbXcyRNCNgcmnSpmcsOx6/ljYdAKPkIstOHn908cq06QAT723mFz4Kx+X2adMBMAo+btlJ4znz99EBpLejNY9RXy5pNgBqbXXz006GJR03S5sOgJyTLCvqM1zMmTQbALU0n4vHLDtZHJ42HQAtaDjb9ZYdp5emTQdA3Wgii/gkcaWLFyXNCEA7+S/f+6VNB0CdHGHZyeFu8+NfAdSXbo/FUzEz5zsAW8Oyk8LzLpZKmw6AHu1m2bF7nzG0FJhoOgE8YNlJ4SNp0wHQp8ssO35PS5wLgIR0Aggng+mJcwHQP91P/4tlx/FGadMBkMI7rHmJxvnTpgNgQNtYdiw/7mLetOkAqJIO+CctOwlslzYdAEO62LLj+YrEuQCo0A8sO/gvSJwLgOFpadU/WXZc75g0GwCVyDfPzZ02HQAF0cyO4djWssevTpsOgDLNY80daDZJmw6Agp1h2fH9/bSpACjTOZYd7OckzgVA8V5hzbPIvSttOgDKsJ5lB7kO+HnSpgOgJHHT+6PmizyAMaEVmR4ymtqBSXGWZcf76YlzAVCgEy07uM9OnAuA8qmza9zr/W1p0wFQhGUsO6ifMJragUmxlWXH/m2JcwFQgGstO6h3S5wLgGpdbazVAIyF+Bu6lkV9Sdp0AFRsaRf/NX8O0OyQLI0MjKBZrHkltQ3SpgMgkW9adh74cuJcAAzgQMsO4ssS5wIgHa3d8Lz5c8G/XbwubToA+vEaF3+zrKC/IW06ABI7yLLzwQ8T5wKgD8dbdvCemDgXAOnN6uIRy84Lq6dNB0AvdHX+D/MH7QvGMDUA3i6WFfQrE+cCoAdfs+yg/VzB257PxfIuNjS/PON+Lj7pYmcXW7p4q/kvFADqR6Nc7jWu0oGRsLD5Ti86WP9qw8/hrOUXP+ji2+aHvPxfj6EJbKa72MvFq4bMYRCaFeuzLi50sY+LRUven6bW/aiL812c6mKtkvfXL+Wmz/A0Fx+ywVttFjL/3k4bMFay4r/wKaePuVin4O0WbXYXa9jg710/8doOeWxn2XE6vf+XAaAqOmGHg/WgIbajK/DrrPcC3i3Oc7HyEPn04yMt9q/FaJYqaX8a1/ub3P6etvqM993Wpr4ft/bxfF3FXWT+S1pRfw8KXSleY34YlVYEe+WAr++CaJspvjx2MpeLo1zcYcW+d73Enh3yujN6XN2/CAETKb4615rncwywDV3JXmhTTw6/Mt/RbmsXq7pY0rKTp07EmrxiXRd7uDjFxY0tthGGzy04QF69Wijal4qsZsZ7qvHvq0ra567W+rXWZVYu3Sttld/SPTz36DbPLStuMP9lsh8/i56/TJ/PLdMbrfgvQf3Edh1y2yJ63PXFvFwARfq6ZQfpJwd4vr6pP23NJwXdj19kwHxUuHd3cVdum4+7WH/AbXZzZLSfTRs/Ozb62Wol7PO4aPvXRP9/Uwn76peGK8bvffz5drstsFL0WH050pKcRSzDuUhj2+90caj5q/98MdLf8lw9bq+uBf1yy/LSMDH1M5lWUfRySyVuVWLhFqBGNHFE6Nmue92z9fn8d1rzCfUSK/a+s+7h/jm3jy0K3L7MZNnqUve4eFHj56+L9vnNgvcpX4m2r1aKm6N/p+50dEyUywdcnGm9F/R4+c0yvgjFdF9dTdN/jfb5a/N9E7qpY0GPF0S6LnEu7WxuzV84ANTE5y07OA/v87nbW3Oh3aHY1P5HV4u35/bVS7Nvr+LXkW+huKzxc33pGfRebTtxQZ9mzZ2Ovl7wvvqhccePNfJ4uPGzk633gh5um/zHsi9HZVvCxS+tudC8uMtz6ljQ4zUUDkmcSzv6TOMe70w+BdTAy1w8Y1nBmruP5+rKPtxjVmxZeHbN1FEsboIvslk6nNift6kd0uIWiP0K3KfkC7o83Pj3s1ZMM/Ug4i84Bzd+1k9BD39TfyorwQ6usizP47o8to4FfW/LcqrzCoca8RDyPDNxLgCcfS07KE/u87lftN5PnEVZN9qn4oMFbHPFaHuntvi9rvLCQjX3WPervn60KugHRz/r1Nu4TNMb+/+XZa0SX7XeCvqs0eNSFHR9Sb07yqHTCIk6FnTdPhiFgq4FnNSBNvydlNlhFUAXM5vvZKYDUkskLtbHcxew7KSje5dVDvmJO6p9vIDtnRptb8U2j9k/ekyR9+/jgr5242fzRj/rZ4hYUZaO9n9e9PMv2WgUdImHH3b6okpBH86hluV6bOJcgIm2k2UH48V9Pnfn6LlnFZxXL9TTeZUCtqPm9bCS1DUdHqer1NBx8PIC9hvEBT3uLXxWm59XIe55/7Y2P697QZfQB0DR7tYFBX04+iIfctVU0XWZPwGYOL+w7GB8a5/PPSR67vsLzqtK6gAXXsf7ujw2LrKdZtPqR1zQ3xL9/K3Rz88oaF+9CuOff5n7edzrfRQK+reiPDZt8xgK+vA0d0TId5fEuQAT6fWWHYR3D/D8uJl6zQLzqpJ66uqeeCg8M3V5fFxkv1RQDnFBzw9Tuyn6Xa/jqof1gWif2+R+9wUbrYL+viiP3ds8hoI+PPVRCPky0QyQQDyL194DPD+eiOYtXR5bV5tY9hqO6PE5tzQer0lWZi8gh7igr5r73Y7R7z5RwL56cXVjfzNa/G7UCnpcaI5p8xgKejHiiWbemDgXYKKol3ZoVo17MffjCMsO4CJ6mqegCXDCe9Droh8ftux1FzE9a1zQW/XGDr3r7yhgX90sG+Wyf4vfj1pBj1/Pd9o8hoJeDI3GCDkfnTgXYKLEczFfMOA2Noq2cUNBeVVJc9dr0hPlf34fz9NVeZgC9dcF5BEX9FY97PeLfr9uAfvr5MvRvl7d4vejVtBXifJo13GTgl4M3RL6p/mcNXKmyKGdADoIV6aKjYbYzoPRdoqecKVscXHqt1DGhW/Y1abigr5Si9+/Ovr92UPuq5swve45bX4/agU9nhDo820eQ0EvzrmW5b154lyAiRCPcX5wyG3tEm1LV7uaNnYUvplrQoxQvAZpyo7ndz+vy2O76dbkLt+JHjPvkPtrJx7CuHabx4xaQd89yqPdBD0U9OLEkz5dlDgXYCLEE2702hGsk/iEqFCnsc0K2G6Z4uI16Anzx9b//fdWeinoG0aP+dQQ++rk543tP9DhMaNW0M+O8sh3OAwo6MX6o2W5vyxxLsDYu9qyA27ZAraniSXyi6YodKJU4SyiJ3jRdO9bOQ7TU31ry17rYUPkEhf0dhPlaHhdmMr0bit+sZN4da9DOzxulAr6HOYnOlEO93R4HAW9WPHkQ93mdQAwBN2P1RSvoTAURb3k40k84tC0sLonq+b5hQrc56A01jvkdvwQ29GY9dADvZcx7O10GrYW+3T0uA0H3Fe3HLq1NsRDHete0OOZDD/b4XEU9GKtYVnu30ucCzDW4qElnylh+1pt7Q5rXdhDPOTiCvPjglXkNYa9yhXFTo9yGXb51XgRlW0H3EZc0DutG64vTf9qPK6fXvnd6Eo2rCP+3S6PHZWCri+uj0Q5tJufXyjoxdNnrtw1VTLN7kBJwn1SxXIl7ufdLn5qnQt7PmaYX3dcK7jp6kpX0nMUnFc8H/uPC9iermZDkZ0+4DY6zRSXd54Vc98+FndsbDc9ahCvrlfngn55tP+vdXls3Qu6RqQcXFGoFWjtAvKPR4FsX8D2AOSU1dzeyZzmi4RaA9Tr9XfWX5FX6GpeBb6Ib/rxmO6tCtiehCI76BV/XNDX6PLY9aPHHjDAvlq5ubE93T7odm++7gVdX3Iujfb9+0YundS9oKeIeYbMf61oW5cOuS0ALXzMym1u74daB3QVf5D5CT9udPGsdT7JqAOb7oUOOmxLw+nCvO0PWHHD69axLMd+15OXuKB3mxM/7hzXSwHuZqVo361mhsur8+Is73XxqDX/zXRqag8o6FnoGDypoNcQ3/Kg2R0o2I8sO8BWSJxLO1rB7O3mm/7i2wP56KX45MWz4xV1dRuElgctw9rv8pHtVltr51PR47s1kXdzUmM7vTbh162gL+HiSBf3W/Pfx4Nd8ovVvaCP4j10+aplr+GdiXMBxoqGZoV7x08kzqUfi7s40MW9NrWof9/6axq8rPE8vQ+DzF3fSTyByV59Pjcu6L0UobgfwDCTd8Sd4b7d43OOtf4LuuLKgkL9Mm4z3zrRrkVHTbyv6vH1CAW9HJopLryGryfOBRgr8cF1RtpUBqaV0X5lzSdvTWLTS8e510bP+VYJucXzu6tZv5+m8Lig97omfViXfZjOcR+K9rt+j88ZtKCXHU+aX5O71/cvRkEvh47Lf5t/DY8nzgUYKzrZhRPEexPnMiytQx6fzC/p4TnxZBdlLfUaF+ZNBnze23p8Tnzf/pA+9hULneH6magmfh9TFHRdlauj21Xm5w1XPjvacJMXUdDLo88pvI4yR9UAE+Vh8weVerlXOea7LHEHP0WnMeA62Yd524tYHa2dN0X59PIlI4gL+tp9PC/MzjdIB79Vo33u08fzBinoKad+7QUFvTz7WvY6Pp04F2AsxGtCX584lyLFQ6g6DcPbNXrcziXnFMbea6GahXt8zqAFfa/oeVv08TwJLTb99iegoFdjXAq6rsrD6/hZ4lyAsRD3ih60ebaOVIhCpy7Fem0ed4s1n1SK6qDVKu6K9tVuuc68uKBP6/E5opaW0Dmun7G+urf5fON5/fYniG93UNDLMy4FXcKscQqGrwFDUm/wcEB1m4ls1Gjcd3htx7b4/Vuj31cdauafpYfXEBf0ftdWP9OyFoFFenzOR6P99dMiIBT0aoxTQQ9/o4oNEucCjLxnzB9MWnlq0AVE6kpj1sPJ4qctfn+WDV6Qi4hemviHKejxjFyH9/icMFLg1j73JfGUnhT08oxTQY9vefX6NwqgBU1FGg6m6YlzKcPrLXt9f8j9TsO5QpP0MKuh9esdUU69dMKLC/q6A+zvN43n3t/DY98c7WvPAfZFQa/GOBX0pSx7LT9JnAsw0uKxxqmney2D7iOH1/dU7ncHRb87rMKc4ilmFd2mc40Lert+AJ3EK+h1W386tFjoHvogox2ONwp6FcapoEsYZfI3K27KZWDixPevil5Duw4Ws+z13RP9XCeNsFZ5kSuT9SruiNit41lc0Hud4CWmwhw6uXW6AtIc+GFluNMG2I9Q0KsxbgVdwzjD6+llfn0ALYQpU9Vpas4Ct7uy+WFTqb8kTLPsRHFN9POto58XuXZ4r9QDPxTZbkPD4oI+aKeh06JtLN7mMfHY/UE7R55gFPQqjFtBj7/gDnKrB5h4Wi41HEQ3FbztJ6Ntp2zK3ynK4/jo51dGPx/kvnQR4iLbaTGYYa/QZY1oG19u85gwM9yNA+5DuEKvxrgV9NUsez3nJc4FGEmafjQcRCcWvO3vRdtWrFzw9nt1RZRDmG417gh4R6K8ZMUoj06zucUFfaMh9hcKtvoS5NcAj3vDf3iIfZxoFPQqjFtBl/B6fp86EWAU7WfZQfShgre9vDUX9FsK3n4vNo32/2D087hZeI8EecXiYvGuNo8pqqDH48vznePObvxcC8gMM7lHryvDUdCHM44F/beW3f6bOXEuwMgJJ3HFGiVsP74vprjYpl4ZlkXTqj4S7Xv3xs/jVc/0337XJi/a9pbl+OM2jxl0UZe8uMf/VdHPXxP9/KQhti8U9GqMY0HXYjp0jAMGpIlDwgE0zGpUnZxhzUX959bfGuWDUOG6Idpn3Lt9t+jnXyk5j15o7Hs89eXSLR5TVEGXeOa8sK/9o5+9ecjtj2NBj3tgL584l2BvG7+CHv8d7pA4F2Ck6H6tmrZ08Nxb4n5e6uIcay7qM8zPkFbGeFOtqhaGoyk0rnXV6Pd3WOfimYI6DYacTmjx+7hIbjbkvlaJtqUpfzWpR/hCce2Q25ZxLOjxZDkbJ84l2MqynA5Lm0ph9LcdXtMxiXMBRoqaDuOm8LIdYc1FXaEWgm0K2PZs5qePDDOixRGvMrZu9PNW08CmotsDYfy3bgPkW0viIvn2AvYXOsflo4iV5k6y8Svo8ap1X0qcS7CCpe2fUgatNRBe048S5wKMFF3JhoOnqvmTtRBKPENaiIfM3xPstzlTV95qQn6qxTZ/Z/6kFzs/+n0RXySK9B2ber8/iAv6OwrYVzyUr+iiOo4FXYUmrHcQWlG2ND/HQRWhmQTnaJHXtdZcAHeqMKc3tMinCM+Zfz2PlLR9YCzFzbxbV7hfXU3riuchm1pUFE+YX+pTXzIObhFacvSH1tzhLR9akzt/lTt/9PuHy3pxQ4hbD27L/S4u6JsXsK+XWNajuN2XiEF9zcavoMvHrf3fWxXRqsCple2JhDmd0ve72N0vou2zlCrQo/i+9kqJctjO/FVzfPUzaDzr4mhrP4VrfM/xoFJezfDijnxzRz//QvTzoibB2Tja5u0FbVOOibabbyHJe7zxuGEmsqmShgzOsPoUdJnLfOvWHT1so+iIZ14sSrz6Ybe/HwAN11nr4pGCrtbUe/sQ8xPS6Aq6lxOKCuDnzBenVk2SMfWs/25j+7MV/gqK8UYXP7CpHYLUvKkObGcWvD91QtLV//wFbvNN5l/DB3t47NouTrf69Bzvlea819Wx8p9WUSzYQ15qlVqjwpzKOG/ELYfvLGH7wFgKPZv/njqRNlR0VWhU5DQt5FtcLGd+sZWyh70BSEMdM0NB3ytxLsBImMWyg6aX9bgBoApxX5LjuzwWgPmxx+Gg+W7iXAAg0EqA4dx0aeJcgJEQz3F+bOJcACDQzIn/NX9uyo/2ANBCvEhH6sVJACA2w/y56ZnEeQAjIe5J+u7EuQBALB6+WdYaE8DYiCf/WCdxLgAQu8yy89MiiXMBau8Cyw6YZRPnAgCxeHKZYVf/A8bedMsOmAUS5wIAsXh1uw0S5wLUnqb6DAfMzIlzAYCY1mwI56dtE+cC1N6jRi9SAPUUj8LZM3EuQO2Fg+Xe1IkAQM57LDtHHZY2FaD+wsHym9SJAEDOepado05InAtQe8zjDqCuVrXsHFX0CoPA2OEKHUBdabngcI76XuJcgNqjoAOoKy2bHM5RVyXOBai9cLDcmjoRAMjRdK/hHHVz4lyA2qOgA6iz/5g/R92dOhGg7kJBZ3lCAHX0F/PnqMdSJwLUHQUdQJ3db/4c9ffUiQB192+jOWucvMLFUi7WdPHaxLkMYy4Xb3KxlovlXCxq/rWNEr3/+hz0eYxa7nXyB/PnqH+nTgSou7+ZP1j+mDqRiq3o4hMu3pg6kSGs4GIfFz80Pyf/05a1uMShpkp1KDrXxQddLJgi2Q5eb35aTw1L+q2Lv1rr16F41sUPXHzSxfIpkm3hNS4+5OJ8F7eYf79b5a7Xpc/p++Y/t+VSJDuCZph//55PnAdQe+Hk+afUiVTsz+Zf942pE+mTivhJLh629kWvl9BEQp91MW+16f+PVvb7omVXX4OGWpb2N19Uq/RqF0eaH+45TP4PuDjFxTLVpj9SdG7Se/VU6kSAunvc/MHyZOpEKjSrZSfUUfkioyZnzZTV7spPV31fdfFpF9u5WN/Fzi4OdfEN82N4Wz1XV/UHuZitotfxcvOFsFORu9PFZS6+1sj/uMZruMDFT8xfpbd6nq6QVys5/zkaObXL4acuTms8Ru+/Pof3mf9c9Pnoc2rXkqLPd+GS8x9FOjfp/Xk0dSJA3T1k/mB5LnUiFRqlgj63+StZNTfGJ3+d3L7u4u3W+7K385gvMpdYdqslxAzzzfEvKS71KXa3bHW/OK51cYSLdfrYlu5Nf8rFj1psT0V15cKy9mYyv/JXOF5C6HO52MWO5j+rXszi4h3mv6SEL9TxLYWjzH/xgRf+9ifttiDQN62ypoPlX6kTqdCoFPTFLevhG1+Nq4l5liG3rRm4TrdsjG+IywvYdt7LrHULwZVWTB+GlVts/wUX+7p4cQHbV+vFT3Lb1/umK/H5hty2/hYPtKlX7bqVsMiQ2x4XdNwFeqTmzXASmRSjUNCXtuarQRWQM8wXene1EwAAHEdJREFU4iKpifo6ay4mKl5zFLR9FbybctvXffMtC9p+bBPznf/yzfAzDbFNXSlfk9um3q+Vhsp0qoVcfCu3H32ZW7Lg/Yyi8H7cnjoRoO7iTj2zJs6lKnUv6Oq9ne8pvU3J+/xSbn9qBh92qNWrXNyR265aBWYfcrvdXJDb53kDbkdD527Ibeu4IhLsYNvc/h6xye4wpy+W4b24KXEuQO3FVx91G85UljoXdPU6n2FZfuoQtHZF+97bmpvg1THtRUNs70prLk47D5tgHy7O7fuTfT5fTfWXR8/X+7J3kQl2oM87dAQLV+rzVLTvulEnwbjlCEAHF1l2wEzKuNg6F3R16Aq5aWjashXvP3+FePiA2zkm2obuD7+5kOz6c2mUQ7+rCR5lze/DtsWm1pU+9/iWy5UV778u9HcT3oNvJ84FqD2NgQ0HTD+9jEdZXQv68ZblpU6KayTKY19rLmab9vn89+aev1Wh2fVOn/OpjXh9H8/bwprzP6D41Hqiz/8fUR5lN/fX0QaWvf6vJM4FqD1NLhIOmK0T51KVOhZ0NbPGRWS/tOn8/9nYQi4aatbrMKo5rXko1mdKya48GnoWJh1S6H0Y5rbDsPay5r+LNRPmkkL85fCwtKkA9ad7i+GA+XDiXKpSx4KumdviIpKaOoTdZVlOn+/xeQdEz/m9FTNsrErHWpb/febfh9Ti22LXJ86lantY9tp3T5wLUHsfsOyAOTBxLlWpW0F/v2X5aGKRYcc2F2VDy/LSuO5unSbzV+ej1uKzqPnXGfJ/R9p0/kcd4uL57cse8VAnh9lkvm5gILo/Omn36OpU0DWJy/02fCe0ssSd9M7s8tj9oseO4hAjDW8L+U9PnEuevmyH3DSO/6Vp06mM7puH171e4lyA2ot7kZ6TOJeq1Kmg7xzlojHHL0ubzhSaQCW+h7tYh8fOiB63cdmJFUxLncavc/W06Uyhsftxr/cPpE2nMhda9pqXSpwLUHuvtMm7P1engn5+lEvqjnDtfNeyHD/S5jHLR4/5dUV5FSm+V1uHPgytxB3kJuXLdzzzX9FTEgNjKSzU8UjqRCpSl4KuhVDiObzregWyo2U5XtTmMXFz+1HVpFUorYJW986hmh425PiEpe19X5W/mH+9j6VOBBgVt5k/aP5rw817PSrqUtCnRXncnzCPbjR7XchTnbNarcgW32tfq7rUCqHV6uLV5xZIm05Ht9rkDGHTojjhtf4ycS7AyNBymuHAmYTFIOpS0OM5AI5PmEcvdDsm5Lpu7nea8z1MGasx3KN25aj7/aNyu+Boy3I9NHEuZdNseeG1DjofPzBx4hnKNkicSxXqUtDjZt5+Z2Or2mGW5fqx3O/eEv3u8mrTKkQ8M16v4+1T0ZepkOsFiXMpm4YNhtf62cS5ACPjE5YdOLskzqUKdSno8bKlCyfMoxcaU95uaF08VeppFedVhC9Ylv/2iXPpJr79cVXiXMq2p2WvddfEuQAjIz4hj2KHpn7VpaDHM7HNmTCPXmgMcMg1P6d2PPSubuPoe6EvISH/zRLn0o1m3gu53pY4l7LFs/YxBh3okRauCAfOJYlzqUJdCnqY/es/CXPoVTwePX8/M26y/lDFeRUhXmr1LYlz6cVTlv5vtwrx8rt17qgI1Iq+9YdVne5LnEsV6lDQZ45yeDhRDv1YwrJ880t5fi763dsrzqsIP7Ms/6UT59KLe8znqhX5Rm2u/H6ELy5PpU4EGDWaqjOc1OZInEvZ6lbQH0+UQz9eZ+0L+kHR78pYN3wj853trhwwdAWu2wS6Dztri+1Pj/JfvoT8i6Yv3aFlZ9RGFPTq1ZZ9JtMT5wKMnDMsO4DqNu1l0epQ0CVeyGTmhHn0QmPLQ675Wco+Ev1unxL2fW+0/WHjQReL57b/nej3dR/loQIehgiOQsvOoOJ10E9InAswcva20b4P2o+6FPTbozwWSZhHL95lWa5fzv3uPdHvyljg52ArppiHyE/telL0u/eXkH+RXmVZrrckzqVM8bLOkzDyBihUvFTmiYlzKVtdCvpVUR6rJMyjF7tZlusBud+tE/3u3Irz6tWbLPsC9UTud4dblv/eFefVr2Usy/WKxLmU6QzLXudqaVMBRs9rbHLuWdWloMdNvTsnzKMXp1iWa35McLwwyzUV59WPeCnOuaOfx+Odz6g+rb5onHzI9azEuZRJrQ/hdbbq9wCgCy2AoAPoudSJlKwuBT3uTFb3qS21cE+7K6Z4zu17K86rHyqAIc/Y2tHP1a+hzh3NtCZ9yPVTiXMpizrlhtf4+8S5ACMrXiZz5cS5lKkuBX3lKA+NSa9rIVnOsjxV2FvleUX0mHyns7oI89H/OfdzLTbzhGX5r1RxXr3S+x7nuUzadEoTT2L0jcS5ACMr7hj3icS5lKkuBV0ejnKp66Qm6rne7QT7qegxB1WUV7+eMZ/fdS1+d7Zl+e9fZVJ9WNWyHO9PnEuZDrPsde6UNhVgdGm4WjiQLkycS5nqVNBPjXKp64prN1iW47vbPGbF6DF3VpRXP+L7/F9v8fv3R7+v64pr8Upr4zyUK16K9/WJcwFG1kstWxc63yw5TupU0DeNclEslDadKeIVr541v1RqO/F99reWn1pfPmpZbju0+H08HKzTF5dU4olWFOunTac0mvnuBRv/cxBQiXgazNclzqUsdSroui/6S8vyOSltOlPcalluR3d57P7RY08uOa9+xVd9C7Z5zHHRY35n9ZpWNc7tV4lzKVN8W+HixLkAI0/rDocDase0qZSmTgVd4qtgzalfl0lm4slkdHX+yi6P14pxYfa7J81fVdbBkpa9jp90eJyu0p+JHvu+8lPriYaUhpYzxSZp0ylVPKHMJxPnAow8nSzCAXV24lzKUreCLvFVuuYtT93jXcU7zBmuOLLH5x1i9XodcoZlOXWbBfHz0WMfMF/kU9L7p5ntQk4/T5tO6eLREnWfbAmovVlc/N3qP5RqGHUs6FqAJL5HemDCXPSZ/zjKRX8Hne6dx+a2bFlYxX5lJNiHFaz5s+628JAKeFjlqw5fSvaz5r+LcV4XXOsZhFUfx/XcA1Ru3L8l17GgSzxpiJbGXCtRHvG9cMV7+nz+ttb8OlYtNLveqUDcFuXS60Qscf4pv1ytYf79C3mcliiPqsStg+M8Cx5QqY9ZdmAdnDiXMtS1oMsvLMtNY9RXqHj/+WL2uQG3c0K0Dc0eN1ch2fUnbj5XYe9nCtFjrPl92L7w7DrTZD7xHAVXVbz/FOK/mTKW4QUmUtyJ6BeJcylDnQv6Ai4esiy/p626ZlY174alOUNz86A9vTUEMszMpviN+b+rqnzQsteiZtxl+3y+Zo+70pqLelW3D/R5Pxntd4aLeSvad0p3mX+9/7Xeb/EA6ME9Nt4HV+jN/HjqRFrQJCgzrLmYlL2sZ7yEqELFbNjPXcPDwkk6fDmpouf4p635tQy6T/UHiIe7Kb5aRIId7JDb3wwb3yleY/oiG17ztYlzAcaO1rwOB9jWiXMpQ7ya0+yJc2llPmvu+R7uK85f8H600Mqvcvs5w8VMBW1fRXF6bvv68jBLQdvP7yvuEa744JDb1PtwRm6ber+Knu9dEwqdm9uPPv/5Ct5PXe1u2euu69S7wMiK10f/duJcyhAvRLNV4lza0a2BC6z5JK+rXJ3whi2I+mLwrdy21QGrrLG/J+f2pSFhh5q/MhvWy82vQ/BAbh97FrDtYF9rvh2h/9e89sMWXH3GGuoXj39XnGOTtWzo1Za99uXSpgKMH91D/Iv5A0yTWsyWNp3CxZOmaNlYdf5TL9tpFcWKfeSq5vb4vrriUfNzkm9mvjd3L+Yxv+76JdY8UYni+j5zGsSW5pfD/D+bWrz67SewmPnpWdWR6lmb+mWhjKln1Vv/xty+njf/5VBN5XO3f2oTfRnb3MU3LZuIJ25i367IpEeAvhTp1p5e/92JcwHGlobJjHOv0/gqPUV8p49cdT/72Dbb0ZhdDTVUS8opLr5o/qpP04XqKlIL7Vzd5rlajnPXPvIoglbyi8d6x6F77teYb5n4ivmVt/S69eXlfPOv89E2z1VosZt5Ss5f88LHndbimN7IXe+73n99Dl9s5PXtRv5Pt3nuF1y8rOTc60h/D+E9+EziXICxFU928r3EuZRlL0tX0C8YIF81R6q45a/Y+w2tKKaTZ7fpXMuiCVyOMt/7fdj3UVe5R5ifIrUq6nX++QLy19A09SlYusLc6yZeza/f0QgAehQ3u2vozzhfPahHtpqcp1UY3WYt60Zj1DVZijqC3W7tr/x0S+Fm852u1ORetxXdFjU/JauuwFUgtcpWpyKoFolLzQ8jWzNBvnkLm+98p/dXnS31frfLW5/T982vMV/2LY5RoL/F8P7Q3A6UTFeD4YDbMW0q6IGa5nW1p0L32sS5DEN9NrQWtu6Fr9T4f3XkmzNlUn3S+6/PYSkbz6GfRYhnJTwsbSrA+NvAsgPuisS5ABgvd1h2fnlj4lyAiaCOU+Ggq1tzLYDRpHUiwnnl1sS5ABNDvXXDgXdo4lwAjAf1/A/nlb0S5wJMDDWFxb1yWdYQwDA0O6PG8Ouc8k9Lv+48MFHiCTU2TJwLgNGm0RbhfHJR4lyAiaPJNMIBeH7iXACMtussO59smjgXYOJoPesXLGsiS7G+NYDR9zrLivkjNvgSvQCGcLZlB+LeiXMBMJpOtOw8cmTiXICJtY5lB+JDiXMBMHo0z35o6VMskTYdYLJpvGg4GLdPnAuA0XKg0RkOqI1trHmBDwDohZb5jZeLXTltOgDUgeU+yw7KftexBjCZdrHsvDE9cS4AGna37MC8PHEuAOpPk1H9wbLzxsZp0wEQaCWseInLSV7LGUB3bzfmbQdqS3O6hwP0vMS5AKg3rXMfzhfvS5wLgBxNLPOs+QP0Py6WTJsOgJrSTHChmN/r4iVp0wHQyuGWHajnJs4FQD3FV+cMdQVqSlfpTxlX6QBai++d6+qcaV6BGjvYsgP27MS5AKiX+Op8m8S5AOhiTuMqHcBU77CsmN+ZOBcAPfq0ZQfutxPnAqAebrPsvPDOxLkA6JGu0h+z7OBdO206ABLbzZgiGhhZ8bSOvzOGpgCTKu4sq1glbToA+qWpHW+x7CDeM206ABI5xZh0Chh5q1t2ID/jYu606QCo2HIu/mv+HPB3F/OnTQfAMNQpLhT1UxPnAqBav7Ls+D8kcS4AhrSQZQe0YtW06QCoyE6WHfcPuJg1bToAihAv3MLKSsD4m9eaO8K9K206AIoys4u7LDu490+bDoCSfcey4/0HiXMBULDVrLlzzOJp0wFQkni+dq3AOF/adACU4UTLDvTpiXMBUDxNKvWoZcf5rmnTAVAWHewPWXaw75Q2HQAFO8my4/vniXMBULL1LTvg1WlmwbTpACjINMuO7ReM22rARDjdsgP/p4lzATA8Te/6iGXH9SfSpgOgKi+35oP/U2nTATAk9WQPx/P15qd+BjAhplnW6/1fLpZNmg2AQcULMT3tYuG06QBI4TjLTgS/N2aSAkaN7pM/Z9lxvH3adACkogln7rTsZHBy2nQA9GEma15R8dK06QBITasxqck9nBS2SpsOgB7F80qoTwyrKQKwfS07MfzNxZvSpoMKqKl2ntRJYGBqWo8XXVo/bToA6kI9Yn9k2cnhjy5ekTSj8bSMi41zP1vXxQoV56EJhS5xcZ2LN+d+91LLxi8rr026bEuP/6qLKzvERVb9axxnK5qfvjkcr59Jmw6AutE41hmWnSR0ImboS7HONz9TX+x288W1nQ+Zvze6Th/70ef2ERcHt4i9XXzT/K2WPVx8OPfcw138x/xqXZe7eLjLvrRGgP5ebjP/N/PLxr9vavz7J41/H9dH/mhPrSr6TMJxeo2LFyfNCEAt6ST/T8tOFkemTWdsLGp+mOBVLv7c+P8Q97u4tvH/i7Z47lHmPwsV2YNa/H4v80vizhz9TK0rf7XmJtk4tjY/3/cvbOrIhmMbj1nMfEF+ostrW6vx+PUa/1698e+Nosc86OIrXbaD7l5ivoCHz1GFndsmANrSFWF88t88bTpjQVev7YprHL9p83w10/+h8Zi4CVxX4ve5uLfPfI4xP8/3G1r8btCC3i0o6MOLh5kqVk2bDoBRcJY1d5Lj/udw3midr9B/3vj/pTps42Uu9jO/wE6wmQ3WnP0981fwL2nxu1DQ1VqQL+jqRT1X7vGhoKsZX036Jzf+fYZlzfzaFwV9OOr3EBfz3dKmA2CU/Nqyk4fu+86fNp2xcIGLP+V+pmbTcwbYljqjqan9Hy4W6eN5rzH/Je2CNr//uvnPXNMD5wu6OtHlV/Bax7K5w6eZv3evf+9j2ZeWx4yCPoxp1lzMz0qaDYCR82rzvd3DSUQFfrakGY2+fEHXlyS9t4f3uR1dWX+r8dzP9vm8i83fj1+lzWO0WM9jjf+PC/qyjf2dl3v8FkaTe5mWND+da7yY0kxJMwIwkl5rvok4nEzUG5ue74PbwcUXGv+v91HN1HpfV+9jGwuYL7R6nnqhz9z54f+jLw8XN553QIdta5KhULRDQdfVeuitvmHuObta1tFumnGFXiTd4tAtmXD8aVa4OZJmBGCkaZyy1lam53sx1CtZHQ1/aP79PKWH5+j++RouPme+wOp551r3uffVyrKj+XHg+gz/09hGq2FOKuaXN7a9ZuNnPzZf4O+y9k29J5hvwg/341v1ctctGwp6f3RLRbc4wnF3j4tXJs0IwFhQL+t/W3Zy2SNtOiNLY8DjZujjrXXHtFi4Ao57wr/XureUvCf3vKutfTO7tvVg43HxUronNH6m+/RfNl9k8nTV+NPo36Gg64ufrsx1la8vBZ/vki8y+ptQa1j47NRK1k8/CQDoaEdrLhC7JM1mNL3dxffNN7uv3ONz1ENe9973afx/r5Z3cZn5At1LMdAXh3fkfqbm/LXND2FrRxPI7Bj9W73g1bNdr0+971XQVZxe30MO8NRJMhxnz5qfHwIACvVxy040Wkv9/WnTAcaKWkrOtuwY022SfvpXAEBf1CM7nHB0T3abtOkAY0HF/BuWHVu6TcGCKwBKp/up4cSje+vvTJsOMPLiYq4vyhxTACpzujVfTWyZNh1gJOnK/FTjVhaAhDT06UJrvlKnqAO9UzE/05o7m+6aNCMAE0szVn3Xmov6e5NmBIyGVsX8o0kzAjDxNGY2PjGpyfADSTMC6k3HjGbji4+ZnZNmBAANre4DUtSBqfKtWuoA9+6kGQFACydacxPiIWnTAWpFc+Jfbdnx8U/zi9sAQC190ZqLupoWe11ABBhXi7m427Lj4u8u1kuZEAD0QjPKqSkxnLx+6eJVSTMC0tFiN09adjzo/1dLmhEA9EFNifEqbVpbfemkGQHVe5/5eRri42CJpBkBwAB0FRJfmTznYtOkGQHVOdqabz/RUgVgpL3W/FrOca/e/ZJmBJRLnd+0pGxczLXKXrf16wGg9uYxf3USn+C0JOjsKZMCSvAGa/4CqzguaUYAUDCNvz3Zmk90v3WxcMqkgAJtZP62UtyTndUIAYwtLTzxD8tOen823wsYGGUHm59QKfxdP+hi+aQZAUAFVnLxiDWv1nao+at4YJS8xsVPrLnlSffPX5kyKQCo0rwurrfmE+EtLpZMmRTQh61cPGXNf8OaWOnFKZMCgFQ+b80nRMXHkmYEdKZe7Oda89/s08bywQBg67h41JpPkGrGfE3KpIAWNF3rQ9b8t/pzo3MnAPyPJtz4kTWfKNWcuav51dyAlOZy8Q1r7vj2b/MLENHEDgAtaB54DfeJC7vutS+VMilMNI3MeNya/yYfcLF6yqQAYBSs4OIOm3pv/TMpk8LEWczFlTb17/BbLl6RLi0AGD17u/ibNZ9MtQTluimTwkQ4wKYW8j+4mJYwJwAYaQu4uMimnlzVy5hOcyja21z83pr/1vSl8kAXMyfMCwDGhqbV1H3L/FAhDXGjUxKGpS+H+aFoYZKYxdKlBQDjSatVHWlTT7q/MTooYXCfMP/lMP6b0tC0rVMmBQCTQEuyXm5TC/upLuZPmBdGy8YubrPWnS9Z6hQAKrSFi/ut+WT8gosvuZgvYV6ot7XMTwaTL+SazGjRhHkBwETTldTh5gt5fHJ+3vy0svOkSw01s7K1HoZ2r4vNE+YFAIgs5OJrNvVkrfWpVdhZ/WpyreLiMpv6t6H75B9NmBcAoINFXJzi4p82tSn+dPOT1mD8aYiZZni7wVoX8j2MYWgAMBJU2NVJLl/Yw1Sy2xkn9HGkeQuOsqlTtSoedrGni1mSZQcAGJg6OZ1oU2ecUzzm4gjzRQCjbQNrPQGR4j4XH0mXGgCgSJp7e38Xf7KpJ3ytmnWxiw2Nld1GiVZA28v8lKytCrl6sr/T+EwBYCypmX0nF7db6yKgueI1hzy94+trVfP9IVq1uujL2XfM92gHAEwIXZHr5N+qsIf54t9lTDJSB+oTsZ+LX1vrz+pJ86MZGEcOABNM83gf4uJBa10sNPTtfBfvdjF7ohwnkWYE1G2Sm639l66rXGzj4qWJcgQA1JSuyFuNWY5X3lLnqx1cvCpRjuNMTeUHu7jV2n8Gf3VxrIslEuUIABghumrXpCOaDvRf1rqw/NfFr8zPVLeaserbIOZ28V4XZ7p41NoX8SdcnOZiE+NqHAAwIBWdXVz80NoXnHAfV4VJne64emxPa47rKvw66/x+PuLiBBfrpEkTADDO5jR/z/Yb1noIXL4gfdvFri5enyLZmljPxWEuplvn90sRWjzWSJEoAGByaSrZfa23YqXZyy4xX7D0pWDpBPmWSePC13axu4uTXVxr3d+T0JT+nsbzAQBIbg4Xm7k42lrPId4uNBRLQ+QOMH8/WYuJ1HkxGfU+15A/9TFQ5zStYNattSIu4N918UkXK1WdOAAAg5jNxfrmr8ivtqlLvHYL9ebWkC2Nlf+c+Qlvdnaxpfkr4eVcLGz+NsCw5jV/W0Cd+zZ2sa2L3VwcaH6xGxXt+/rMX6GhgOe4+LCNX4sEAGCCqahtZb7IX+jiTuu/SHYaUvcX84uQaI3v35n/QqApUH/h4hYXd7i433yP8qcL3PdT5pvYVfw/br4j26sLes8AABgZuhe/tfn78eGKWEW5qIJbVNHWF4QLzLcY6KpbHd4WLOH9AABg7Cxuvoldk9580MU+5pcIPcnFeS6uMH8VfpP5OervMb/m959dPG9ZQdaMd7qHrWbwu8xP3qJ7/ZptTYvTnO7iOPNDyrRe+Pbm+wRospdXlP4qAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgDH0/wClFMZxu9JebQAAAABJRU5ErkJggg==';
+
+    let cachedLogoBase64 = null;
+
+    async function preloadLogoAsBase64(src) {
+      try {
+        const resp = await fetch(src);
+        const blob = await resp.blob();
+        return await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        console.warn('Logo preload failed:', e);
+        return null;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('ネットワークエラーが発生しました。');
+        const data = await response.json();
+        if (data.error) { showError(data.error); return; }
+        if (data.heatmap) heatmapData = data.heatmap;
+        if (data.easterEgg) window.easterEggData = data.easterEgg;
+        initApp(data);
+        syncScrollbars();
+      } catch (e) {
+        showError("データの取得に失敗しました。: " + e.message);
+      }
+    });
+
+    function timeToMinutes(timeStr) {
+      if (!timeStr || !timeStr.includes(':')) return 0;
+      const parts = timeStr.split(':');
+      return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+    }
+
+    // F12覗き見対策:
+    function xorDecryptB64(b64, key) {
+      if (!b64 || !key) return "";
+      try {
+        const binStr = atob(b64);
+        const encBytes = new Uint8Array(binStr.length);
+        for (let i = 0; i < binStr.length; i++) encBytes[i] = binStr.charCodeAt(i);
+        const keyBytes = new TextEncoder().encode(key);
+        const decBytes = encBytes.map((b, i) => b ^ keyBytes[i % keyBytes.length]);
+        return new TextDecoder('utf-8').decode(decBytes);
+      } catch (e) {
+        return "";
+      }
+    }
+
+    const unlockedShows = new Set();
+    const unlockedUrls = {};
+
+    function promptLock(groupKey, encryptedData, event) {
+      if (event) event.stopPropagation();
+      const input = prompt("【LOCKED】\nこの公演は詳細がロックされています。\n閲覧・予約するためのパスワードを入力してください：");
+      if (input === null) return;
+
+      const decrypted = xorDecryptB64(encryptedData, input.trim());
+      if (decrypted.endsWith("|||VALID_PASSWORD|||")) {
+        const url = decrypted.replace("|||VALID_PASSWORD|||", "");
+        unlockedShows.add(groupKey);
+        unlockedUrls[groupKey] = url;
+        filterShows(activeDay);
+      } else {
+        alert("Access Denied. パスワードが違います。");
+      }
+    }
+
+    let activeDay = "1日目";
+    let currentFilterType = "ALL";
+
+    function filterShows(day) {
+      activeDay = day;
+      document.querySelectorAll('.day-tab-btn').forEach(btn => {
+        btn.classList.remove('bg-main', 'text-white', 'shadow-md');
+        btn.classList.add('text-slate-500', 'hover:bg-white/60');
+      });
+      const activeTab = document.getElementById('day-tab-' + day);
+      if (activeTab) {
+        activeTab.classList.remove('text-slate-500', 'hover:bg-white/60');
+        activeTab.classList.add('bg-main', 'text-white', 'shadow-md');
+      }
+      const filteredShows = allShows.filter(s => {
+        if ((s["日程"] || "1日目") !== activeDay) return false;
+        if (currentFilterType !== 'ALL') {
+          const type = s["予約形式"] || "";
+          if (type !== currentFilterType && !type.startsWith(currentFilterType)) return false;
+        }
+        if (hiddenShowTitles.has(s["公演名"])) return false;
+        return true;
+      });
+      renderTimetable(filteredShows);
+      syncScrollbars();
+    }
+
+    function applyTypeFilter(type) {
+      currentFilterType = type;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('bg-main', 'text-white', 'shadow-md', 'active-filter');
+        btn.classList.add('text-slate-500', 'hover:bg-white/60');
+      });
+      const activeBtnId = type === 'ALL' ? 'filter-btn-ALL' : (type === '事前予約' ? 'filter-btn-PRE' : 'filter-btn-DAY');
+      const activeBtn = document.getElementById(activeBtnId);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-500', 'hover:bg-white/60');
+        activeBtn.classList.add('bg-main', 'text-white', 'shadow-md', 'active-filter');
+      }
+      const filteredShows = allShows.filter(s => {
+        if ((s["日程"] || "1日目") !== activeDay) return false;
+        if (currentFilterType !== 'ALL') {
+          const type = s["予約形式"] || "";
+          if (type !== currentFilterType && !type.startsWith(currentFilterType)) return false;
+        }
+        if (hiddenShowTitles.has(s["公演名"])) return false;
+        return true;
+      });
+      renderTimetable(filteredShows);
+      syncScrollbars();
+    }
+
+    function togglePdfMode() {
+      document.getElementById('body-tag').classList.add('pdf-mode');
+      alert("画像作成モードに切り替えました。印刷ダイアログでPDF保存してください。※元の画面に戻りたい場合は画面更新してね");
+      setTimeout(() => { window.print(); }, 500);
+    }
+
+    function syncScrollbars() {
+      const wrapper = document.getElementById('top-scrollbar-wrapper');
+      const container = document.getElementById('table-container');
+      if (!wrapper || !container) return;
+      wrapper.onscroll = () => { container.scrollLeft = wrapper.scrollLeft; };
+      container.onscroll = () => { wrapper.scrollLeft = container.scrollLeft; };
+    }
+
+    function showError(msg) {
+      document.getElementById('loading-msg').classList.add('hidden');
+      const errDiv = document.getElementById('error-msg');
+      errDiv.innerText = msg;
+      errDiv.classList.remove('hidden');
+    }
+
+    function initApp(data) {
+      const rawConfig = data.config;
+
+      // CSS変数の更新
+      if (rawConfig['タイムテーブルメインカラー']) document.documentElement.style.setProperty('--main-color', rawConfig['タイムテーブルメインカラー']);
+      if (rawConfig['タイムテーブルアクセントカラー']) document.documentElement.style.setProperty('--accent-color', rawConfig['タイムテーブルアクセントカラー']);
+
+      // メンテナンスモード
+      const isMaintenance = String(rawConfig['非公開モード'] || "").trim() === '非公開モードON';
+      if (isMaintenance) {
+        document.getElementById('maintenance-screen').classList.remove('hidden');
+        document.getElementById('app-container').classList.add('hidden');
+        document.getElementById('selection-bar').classList.add('hidden');
+        const mMsg = rawConfig['非公開モード:準備中メッセージ'];
+        if (mMsg) document.getElementById('maintenance-message').innerText = mMsg;
+        return;
+      }
+
+      config = {
+        title: rawConfig["イベント名"] || "タイムテーブル",
+        subtitle: rawConfig["サブタイトル"] || "",
+        date: String(rawConfig["開催日(YYYYMMDD)"] || rawConfig["開催日"] || ""),
+        startHour: parseInt((rawConfig["開始時間(hh:mm)"] || "10:00").split(":")[0], 10),
+        endHour: parseInt((rawConfig["終了時間(hh:mm)"] || "20:00").split(":")[0], 10),
+        headerUrl: rawConfig["ヘッダー画像URL"] || rawConfig["背景画像URL"] || "",
+        stepMin: parseInt(rawConfig["タイムテーブルの刻み幅(分)"] || "30", 10),
+        logoUrl: rawConfig["ロゴ画像URL"] || "",
+        hashtag: rawConfig["SNSハッシュタグ"] || "#ハッシュタグ",
+        allowZeroMinTransfer: String(rawConfig["0分移動可否"] || "").trim() === '0分移動OK',
+        allowSoldOutSelect: String(rawConfig["完売公演の選択可否"] || "").trim() === '選択OK',
+        numDays: parseInt(rawConfig["開催日数"] || "1", 10),
+        day1Label: rawConfig["1日目のラベル"] || "1日目",
+        day2Label: rawConfig["2日目のラベル"] || "2日目",
+        day3Label: rawConfig["3日目のラベル"] || "3日目"
+      };
+
+      allShows = data.shows;
+
+      // ロゴ・タイトル表示の制御
+      const finalLogoUrl = CUSTOM_LOGO_BASE64 || config.logoUrl;
+      const logoEl = document.getElementById('modal-fes-logo');
+      const modalTitleEl = document.getElementById('modal-fes-title');
+      const fesTitleEl = document.getElementById('fes-title');
+      const fesSubtitleEl = document.getElementById('fes-subtitle');
+
+      fesTitleEl.innerText = config.title;
+      if (config.subtitle) {
+        fesSubtitleEl.innerText = config.subtitle;
+        fesSubtitleEl.style.display = 'block';
+      } else {
+        fesSubtitleEl.style.display = 'none';
+      }
+
+      if (finalLogoUrl) {
+        logoEl.src = finalLogoUrl;
+        logoEl.classList.remove('hidden');
+        modalTitleEl.classList.add('hidden');
+        // ロゴが外部URLの場合はキャッシュを試みる
+        if (!CUSTOM_LOGO_BASE64) {
+          preloadLogoAsBase64(finalLogoUrl).then(b64 => { if (b64) cachedLogoBase64 = b64; });
+        } else {
+          cachedLogoBase64 = CUSTOM_LOGO_BASE64;
+        }
+      } else {
+        logoEl.classList.add('hidden');
+        modalTitleEl.classList.remove('hidden');
+        let modalTitle = config.title.includes("タイムテーブル")
+          ? config.title.replace("タイムテーブル", "My ハシゴテーブル")
+          : config.title + " My ハシゴテーブル";
+        modalTitleEl.innerText = modalTitle;
+      }
+
+      document.getElementById('modal-hashtag').innerText = config.hashtag;
+      const d = String(config.date);
+      const rawCleaned = d.replace(/\D/g, "");
+      if (rawCleaned.length === 8) {
+        document.getElementById('modal-fes-date').innerText = `${rawCleaned.substring(0, 4)}.${rawCleaned.substring(4, 6)}.${rawCleaned.substring(6, 8)}`;
+      } else {
+        document.getElementById('modal-fes-date').innerText = d;
+      }
+
+      if (config.headerUrl) {
+        const processedHeaderUrl = convertDriveUrl(config.headerUrl);
+        document.getElementById('header-bg').style.backgroundImage = `url('${processedHeaderUrl}')`;
+      }
+      document.getElementById('loading-msg').classList.add('hidden');
+
+      // 日程タブの生成
+      const dayTabsContainer = document.getElementById('day-tabs-container');
+      if (config.numDays >= 2) {
+        let tabsHtml = '';
+        const days = [];
+        for (let i = 1; i <= config.numDays; i++) {
+          days.push({ value: `${i}日目`, label: config[`day${i}Label`] });
+        }
+        days.forEach((dayObj, i) => {
+          tabsHtml += `<button onclick="filterShows('${dayObj.value}')" id="day-tab-${dayObj.value}" class="day-tab-btn px-3 py-2.5 md:px-4 rounded-full text-[11px] font-black transition-all whitespace-nowrap ${i === 0 ? 'bg-main text-white shadow-md' : 'text-slate-500 hover:bg-white/60'}">${dayObj.label}</button>`;
+        });
+        dayTabsContainer.innerHTML = tabsHtml;
+        dayTabsContainer.classList.remove('hidden');
+        activeDay = days[0].value;
+      } else {
+        activeDay = "1日目";
+      }
+
+      // タイプフィルターの生成
+      const filterContainer = document.getElementById('filter-buttons-container');
+      const hasDayShow = allShows.some(s => {
+        const type = s["予約形式"] || "";
+        return type.includes("当日受付") || type.startsWith("当日");
+      });
+
+      if (hasDayShow) {
+        filterContainer.innerHTML = `
+            <button onclick="applyTypeFilter('ALL')" id="filter-btn-ALL" class="filter-btn active-filter bg-main text-white shadow-md px-3 py-2.5 md:px-4 rounded-full text-[11px] font-black transition-all whitespace-nowrap">すべて</button>
+            <button onclick="applyTypeFilter('事前予約')" id="filter-btn-PRE" class="filter-btn text-slate-500 hover:bg-white/60 px-3 py-2.5 md:px-4 rounded-full text-[11px] font-black transition-all whitespace-nowrap">事前予約</button>
+            <button onclick="applyTypeFilter('当日受付(ファミレス式)')" id="filter-btn-DAY" class="filter-btn text-slate-500 hover:bg-white/60 px-3 py-2.5 md:px-4 rounded-full text-[11px] font-black transition-all whitespace-nowrap">当日受付</button>
+          `;
+        filterContainer.classList.remove('hidden');
+      } else {
+        filterContainer.innerHTML = '';
+        filterContainer.classList.add('hidden');
+      }
+
+      const axis = document.getElementById('time-axis');
+      axis.innerHTML = '';
+      for (let i = config.startHour; i <= config.endHour; i++) {
+        axis.innerHTML += `<div style="height:${PIXELS_PER_HOUR}px" class="flex items-start justify-center pt-1 border-t border-slate-100/50 text-slate-400 font-bold text-sm">${i}:00</div>`;
+      }
+
+      const stepPx = config.stepMin * (PIXELS_PER_HOUR / 60);
+      const styleEl = document.createElement('style');
+      styleEl.innerHTML = `.venue-col { background-size: 100% ${stepPx}px !important; }`;
+      document.head.appendChild(styleEl);
+
+      filterShows(activeDay);
+    }
+    // ============================================================
+    // --- タイムテーブルの描画とUI構築 ---
+    // ============================================================
+    function renderTimetable(shows) {
+      const container = document.getElementById('table-container');
+      container.classList.remove('hidden');
+
+      const titles = [...new Set(shows.map(item => item["公演名"]))].filter(Boolean);
+      const grid = document.getElementById('timetable-grid');
+      grid.innerHTML = '';
+      // 団体ごとのテーマカラー定義(好きな色にしていい)
+      const colors = [
+        { text: "text-blue-800", bg: "bg-blue-100", border: "border-blue-200", accent: "text-blue-500", phaseBg: "bg-blue-300", phaseText: "text-blue-900" },
+        { text: "text-indigo-800", bg: "bg-indigo-100", border: "border-indigo-200", accent: "text-indigo-500", phaseBg: "bg-indigo-300", phaseText: "text-indigo-900" },
+        { text: "text-emerald-800", bg: "bg-emerald-100", border: "border-emerald-200", accent: "text-emerald-500", phaseBg: "bg-emerald-300", phaseText: "text-emerald-900" },
+        { text: "text-orange-800", bg: "bg-orange-100", border: "border-orange-200", accent: "text-orange-500", phaseBg: "bg-orange-300", phaseText: "text-orange-900" },
+        { text: "text-pink-800", bg: "bg-pink-100", border: "border-pink-200", accent: "text-pink-500", phaseBg: "bg-pink-300", phaseText: "text-pink-900" }
+      ];
+
+      // iPhone(iOS)かどうかを判定
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const titleSizeClass = isIOS ? "text-[11px]" : "text-[13px]";
+      const infoSizeClass = isIOS ? "text-[8.5px]" : "text-[9.5px]";
+      const cSize = isIOS ? "text-[7px]" : "text-[8px]";
+      const headerHeightClass = isIOS ? "h-[245px]" : "h-[230px]";
+      const currentHeaderOffset = isIOS ? 255 : 240;
+
+      const colHtmls = []; // 文字列結合用
+
+      titles.forEach((title, index) => {
+
+        // グループ内の全公演データを取得
+        const groupShows = shows.filter(s => s["公演名"] === title);
+        const base = groupShows[0];
+        const c = colors[index % colors.length];
+        const columnHeight = (config.endHour - config.startHour + 1) * PIXELS_PER_HOUR + currentHeaderOffset;
+
+        let imageUrl = convertDriveUrl(base["公演ビジュアルURL"], true);
+
+        const isHeaderNoise = base["ノイズ演出"] === true || String(base["ノイズ演出"]).toUpperCase() === "TRUE";
+
+        // グループ識別キー: IDベースで管理（文字列エスケープ問題を完全回避）
+        const groupKey = String(base.id || index);
+        const isGroupUnlocked = unlockedShows.has(groupKey);
+        // 暗号化データがあるか、LOCKED_FLAGが立っているかで判定
+        const hasLockConfig = (base["_encryptedData"] || "") !== "" || String(base["南京錠パスワード"] || "") === "LOCKED_FLAG";
+        const lockPassword = String(base["_encryptedData"] || "");
+        const hasLock = hasLockConfig && !isGroupUnlocked;
+
+        const capacity = base["定員"] || "-";
+        const duration = base["所要時間(分)"] || base.duration || "0";
+        const priorityDurationText = base["所要時間:優先表示テキスト"] || "";
+        const durationDisplay = priorityDurationText !== "" ? String(priorityDurationText).replace(/\n/g, '<br>') : `${duration}分`;
+
+        const circle = base["団体名"] || base["サークル名"] || "不明";
+
+        // 予約URLの取得元を暗号化データ復号済みのURLか通常のURLに分ける
+        const reserveUrl = isGroupUnlocked && unlockedUrls[groupKey] ? unlockedUrls[groupKey] : (base["予約URL"] || base.url);
+        const reservationType = base["予約形式"] || "事前予約";
+        const isFamilyStyle = reservationType === "当日受付(ファミレス式)";
+
+        // ヘッダー画像のぼやけ演出
+        let visualHtml = "";
+        if (imageUrl) {
+          if (isHeaderNoise) {
+            visualHtml = `
+              <div class="relative flex-shrink-0 program-visual border-0 bg-slate-50 p-0 w-auto h-auto shadow-none overflow-hidden rounded">
+                <img src="${imageUrl}" class="h-[110px] w-auto max-w-[140px] object-contain rounded mystic-blur saturate-50" alt="visual">
+                <div class="absolute inset-0 mystic-shimmer pointer-events-none"></div>
+              </div>`;
+          } else {
+            visualHtml = `<img src="${imageUrl}" class="program-visual" alt="visual">`;
+          }
+        } else {
+          if (isHeaderNoise) {
+            visualHtml = `<div class="program-visual relative flex items-center justify-center overflow-hidden w-20 bg-slate-50 border-slate-200 rounded"><div class="absolute inset-0 mystic-shimmer pointer-events-none"></div><span class="mystic-text relative z-10 px-1 text-[10px] font-bold italic">No Visual</span></div>`;
+          } else {
+            visualHtml = `<div class="program-visual flex items-center justify-center text-[10px] text-slate-300 font-bold italic text-center leading-tight w-20">No Visual</div>`;
+          }
+        }
+
+        let titleHtml = `<h3 class="font-[900] ${titleSizeClass} leading-[1.3] text-main break-words whitespace-pre-wrap">${title}</h3>`;
+        if (isHeaderNoise) {
+          titleHtml = `<h3 class="font-[900] ${titleSizeClass} leading-[1.3] mystic-text break-words whitespace-pre-wrap select-none">${title}</h3>`;
+        }
+
+        // ヘッダーボタン用: groupKeyを使ってonclickを生成
+        const safeEncryptedForHeader = lockPassword.replace(/'/g, "\\'");
+
+        // 予約ボタンロジック
+        let buttonHtml = `<div class="h-8"></div>`;
+        if (isFamilyStyle) {
+          buttonHtml = `<div class="w-full bg-orange-50 border border-orange-200 text-orange-600 text-[10px] font-bold py-1.5 rounded flex items-center justify-center uppercase tracking-tighter cursor-default">当日現地受付</div>`;
+        } else if (hasLock) {
+          buttonHtml = `<button onclick="promptLock('${groupKey}', '${safeEncryptedForHeader}')" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-700 text-[11px] font-bold py-1.5 rounded flex items-center justify-center gap-1.5 transition-all uppercase tracking-tighter active:scale-95 shadow-sm"><span class="material-symbols-outlined text-[14px] text-accent">lock</span>LOCKED</button>`;
+        } else if (isHeaderNoise) {
+          buttonHtml = `<button disabled class="w-full bg-slate-50 border border-slate-200 text-slate-400 text-[11px] font-bold py-1.5 rounded flex items-center justify-center transition-all uppercase tracking-tighter cursor-not-allowed">LOCKED</button>`;
+        } else if (reserveUrl && reserveUrl !== "") {
+          buttonHtml = `<a href="${reserveUrl}" target="_blank" class="w-full bg-blue-50 border border-main/40 hover:bg-main/5 text-main text-[11px] font-bold py-1.5 rounded flex items-center justify-center transition-all uppercase tracking-tighter active:scale-95 shadow-sm">予約する</a>`;
+        }
+
+        let priceHtml = '';
+        if (base["参加料金"] !== undefined && base["参加料金"] !== "") {
+          const priceVal = base["参加料金"];
+          const priceText = isNaN(priceVal) ? priceVal : `${priceVal}円`;
+          priceHtml = `
+            <div class="flex items-center gap-1.5 text-slate-400 font-medium">
+              <span>料金:</span> <span class="text-main font-black">${priceText}</span>
+            </div>`;
+        }
+
+        const headerNoiseLayer = isHeaderNoise ? `<div class="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none z-0"></div>` : "";
+
+        let colHtml = `
+        <div class="venue-col border-r border-slate-100" style="height:${columnHeight}px" data-reservation="${reservationType}">
+          <div class="timetable-header sticky top-0 bg-white/95 backdrop-blur-md px-2 py-3 z-30 ${headerHeightClass} flex flex-col border-b border-slate-200 shadow-sm overflow-hidden text-left relative">
+            ${headerNoiseLayer}
+            <div class="relative z-10 flex gap-2 items-start mb-2">
+              <div class="w-[80px] flex-none"> <div class="${cSize} font-black ${c.text} opacity-80 bg-white border ${c.border} px-1.5 py-0.5 rounded inline-block mb-1.5 tracking-widest leading-none break-words whitespace-pre-wrap">${circle}</div> ${titleHtml}
+              </div>
+              ${visualHtml}
+            </div>
+
+            <div class="relative z-10 space-y-0.5 ${infoSizeClass} uppercase tracking-wider mb-2 font-black flex-none">
+              <div class="flex items-center gap-1.5 text-slate-400 font-medium"><span>定員:</span> <span class="text-main font-black">${capacity}</span></div>
+              <div class="flex items-center gap-1.5 text-slate-400 font-medium"><span>所要:</span> <span class="text-main font-black">${durationDisplay}</span></div>
+              ${priceHtml}
+            </div>
+
+            <div class="relative z-10 mt-auto mb-1.5 reserve-btn-area">
+              ${buttonHtml}
+            </div>
+          </div>`;
+
+        // 時間割ごとのループ処理
+        groupShows.forEach(show => {
+          const startStr = show["開始時間(hh:mm)"] || show.start;
+          if (!startStr || !startStr.includes(":")) return;
+          const isSoldOut = show["完売設定"] === true || show["完売設定"] === "true" || show["完売設定"] === "完売" || show["完売設定"] === "売切" || show["完売"] === true || show["完売"] === "true" || show["完売"] === "完売";
+          const soldOutClass = isSoldOut
+            ? (config.allowSoldOutSelect ? "opacity-40 grayscale cursor-pointer" : "opacity-40 grayscale pointer-events-none shadow-none")
+            : "cursor-pointer";
+          const soldOutBadge = isSoldOut ? `<div class="absolute inset-0 flex items-center justify-center z-10"><span class="bg-slate-700 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-lg transform -rotate-12 uppercase text-center tracking-widest">SOLD OUT</span></div>` : "";
+          const showId = show.id || `show-${index}-${Math.random().toString(36).substr(2, 9)}`;
+          show.id = showId;
+          const currentShowCount = heatmapData[showId] || 0;
+          const allCounts = Object.values(heatmapData);
+          const maxCount = allCounts.length > 0 ? Math.max(...allCounts) : 1;
+          const heatIntensity = maxCount > 0 ? Math.min(currentShowCount / maxCount, 1) : 0;
+
+          // 行（時間枠）ごとの個別の設定を読み込む
+          const isCardNoise = show["ノイズ演出"] === true || String(show["ノイズ演出"]).toUpperCase() === "TRUE";
+          // hasLockConfig と判定基準を合わせる
+          const isCardLockConfig = (show["南京錠パスワード"] || "") !== "" || (show["_encryptedData"] || "") !== "";
+          const isCardLock = isCardLockConfig && !isGroupUnlocked;
+          const [h, m] = (startStr && startStr.includes(":")) ? startStr.split(":").map(Number) : [config.startHour, 0];
+          const top = ((h - config.startHour) * 60 + m) * (PIXELS_PER_HOUR / 60) + currentHeaderOffset;
+
+          let cardStyle = "";
+          let timeDisplay = "";
+          let phaseBlockHtml = "";
+
+          const showDuration = show["所要時間(分)"] || show.duration || 0;
+          let endT_min = (h * 60) + m + Number(showDuration);
+
+          if (isFamilyStyle && showDuration == 0) {
+            endT_min = (config.endHour + 1) * 60;
+          }
+
+          const pAcceptEnd = show["受付終了時間"] || "";
+          let acceptEndMin = null;
+          if (pAcceptEnd.includes(":")) {
+            const [ah, am] = pAcceptEnd.split(":").map(Number);
+            acceptEndMin = (ah * 60) + am;
+          }
+
+          const pTotalEnd = show["完全終了時間"] || "";
+          let totalEndMin = null;
+          if (pTotalEnd.includes(":")) {
+            const [th, tm] = pTotalEnd.split(":").map(Number);
+            totalEndMin = (th * 60) + tm;
+          }
+
+          if (totalEndMin !== null && acceptEndMin !== null) {
+            if (totalEndMin <= acceptEndMin) {
+              endT_min = Math.max(totalEndMin, acceptEndMin);
+            } else {
+              endT_min = totalEndMin;
+              const phaseHeight = (totalEndMin - acceptEndMin) * (PIXELS_PER_HOUR / 60) - 1;
+              if (phaseHeight > 0) {
+                const rawPhaseName = show["最終フェーズ表示名"] || "受付終了";
+                const phaseName = String(rawPhaseName).replace(/\n/g, '<br>');
+                phaseBlockHtml = `
+                     <div class="absolute bottom-0 left-0 right-0 flex items-center justify-center p-1 ${c.phaseBg} border-t border-dashed border-white/60" style="height:${phaseHeight}px;">
+                       <span class="text-[10px] font-black ${c.phaseText} leading-tight text-center drop-shadow-sm">${phaseName}</span>
+                     </div>
+                   `;
+                cardStyle += `padding-bottom: ${phaseHeight + 16}px; `;
+              }
+            }
+          } else if (totalEndMin !== null) {
+            endT_min = totalEndMin;
+          } else if (acceptEndMin !== null) {
+            endT_min = acceptEndMin;
+          }
+
+          const height = Math.max(0, (endT_min - ((h * 60) + m)) * (PIXELS_PER_HOUR / 60) - 1);
+          cardStyle += `top:${top}px; height:${height}px;`;
+
+          const calcEndStr = `${Math.floor(endT_min / 60)}:${('0' + (endT_min % 60)).slice(-2)}`;
+          const endStr = isFamilyStyle ? calcEndStr : (show.endTime || show.end || calcEndStr);
+          const validStartStr = startStr || `${config.startHour}:00`;
+
+          if (isFamilyStyle) {
+            timeDisplay = `随時受付<br><span class="opacity-70 text-[9px]">(${validStartStr} - ${endStr})</span>`;
+          } else {
+            timeDisplay = `${validStartStr} - ${endStr}`;
+          }
+
+          if (currentShowCount > 0) {
+            const hue = 60 - (heatIntensity * 60);
+            const heatAlpha = (0.2 + (heatIntensity * 0.6)).toFixed(2);
+            cardStyle += ` background-color: hsla(${hue}, 90%, 60%, ${heatAlpha}) !important; border-color: hsla(${hue}, 90%, 50%, ${heatAlpha}) !important;`;
+          }
+
+          const cardNoiseClass = isCardNoise ? "!bg-slate-300/40 backdrop-blur-md !border-slate-300 pointer-events-none overflow-hidden" : `${c.bg} ${c.border}`;
+          const textNoiseClass = isCardNoise ? "mystic-text" : c.text.replace('800', '700');
+          const cardNoiseLayer = isCardNoise ? `<div class="mystic-shimmer pointer-events-none rounded opacity-30"></div>` : "";
+
+          const cardLockBadge = isCardLock && !isCardNoise ? `<div class="absolute -top-2 -left-2 bg-slate-800 text-white w-5 h-5 rounded-full flex items-center justify-center shadow-md z-20"><span class="material-symbols-outlined text-[12px] text-accent">lock</span></div>` : "";
+          const lockedStateClass = isCardLock && !isCardNoise ? "card-locked-state" : "";
+
+          // カードごとの暗号データ
+          const cardEncData = String(show["_encryptedData"] || "").replace(/'/g, "\\'");
+          const onclickHandler = isCardLock ? `promptLock('${groupKey}', '${cardEncData}', event)` : `toggleShow('${showId}', event)`;
+
+          colHtml += `
+          <div onclick="${onclickHandler}" id="card-${showId}"
+               style="${cardStyle}"
+               class="absolute left-2 right-2 p-4 transition-all duration-300 flex flex-col items-center justify-center timetable-card border border-slate-200 ${soldOutClass} hover:brightness-95 ${cardNoiseClass} ${lockedStateClass}">
+            ${cardNoiseLayer}
+            ${soldOutBadge}
+            ${cardLockBadge}
+            <div class="font-black text-[11px] text-center leading-tight z-10 ${textNoiseClass}">${timeDisplay}</div>
+            ${currentShowCount > 0 ? `<div class="absolute -top-2 -right-2 bg-red-600 text-white w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-pulse z-20 tooltip-trigger" title="${currentShowCount}人がハシゴ予定！"><span class="material-symbols-outlined text-[10px]">mode_heat</span></div>` : ''}
+            ${phaseBlockHtml}
+          </div>`;
+        });
+
+        colHtmls.push(colHtml + `</div>`);
+      });
+
+      grid.innerHTML += colHtmls.join('');
+
+      const topScrollWrapper = document.getElementById('top-scrollbar-wrapper');
+      const topScrollContent = document.getElementById('top-scrollbar-content');
+      topScrollWrapper.classList.remove('hidden');
+
+      // 画像が遅れて読み込まれても幅が合うように、0.5秒ごとに数回だけ幅を再計算する
+      let checkCount = 0;
+      const syncInterval = setInterval(() => {
+        if (container && topScrollContent) {
+          topScrollContent.style.width = container.scrollWidth + "px";
+        }
+        checkCount++;
+        if (checkCount >= 10) clearInterval(syncInterval); // 5秒後（10回確認後）に監視を完全ストップ
+      }, 500);
+    } //
+
+    function toggleShow(id, event) {
+      if (event) event.stopPropagation();
+      const idx = selectedIds.indexOf(id);
+      const card = document.getElementById(`card-${id}`);
+      if (idx > -1) {
+        selectedIds.splice(idx, 1);
+        if (card) card.classList.remove('selected-card');
+      } else {
+        selectedIds.push(id);
+        if (card) card.classList.add('selected-card');
+      }
+      updateUI();
+      clearTimeout(heatmapDebounceTimer);
+      heatmapDebounceTimer = setTimeout(() => sendHeatmapData(), 3000);
+    }
+    // ============================================================
+    // --- UIの更新（被り判定と下部バーの表示） ---
+    // ============================================================
+
+    function updateUI() {
+      let hasConflict = false;
+      const showsMap = new Map(allShows.map(s => [s.id, s]));
+
+      // 選択された公演の被り（重複）チェック
+      selectedIds.forEach((id1, i) => {
+        const s1 = showsMap.get(id1);
+        const card1 = document.getElementById(`card-${id1}`);
+        if (card1) card1.classList.remove('conflict');
+        if (!s1 || (s1["予約形式"] || "") === "当日受付(ファミレス式)" || (s1["予約形式"] || "") === "事前予約(時間自由)") return;
+        const start1 = timeToMinutes(s1["開始時間(hh:mm)"] || s1.start);
+        const end1 = timeToMinutes(s1.endTime || s1.end);
+        selectedIds.forEach((id2, j) => {
+          if (i >= j) return;
+          const s2 = showsMap.get(id2);
+          if (!s2 || (s2["予約形式"] || "") === "当日受付(ファミレス式)" || (s2["予約形式"] || "") === "事前予約(時間自由)") return;
+          const start2 = timeToMinutes(s2["開始時間(hh:mm)"] || s2.start);
+          const end2 = timeToMinutes(s2.endTime || s2.end);
+          if (config.allowZeroMinTransfer) {
+            // 0分移動可：完全な重複のみNG（端点一致はOK）
+            if ((start1 < end2 && end1 > start2) || (start2 < end1 && end2 > start1)) {
+              hasConflict = true;
+              if (card1) card1.classList.add('conflict');
+              const card2 = document.getElementById(`card-${id2}`);
+              if (card2) card2.classList.add('conflict');
+            }
+          } else {
+            // 0分移動不可：端点一致もNG
+            if ((start1 <= end2 && end1 >= start2) || (start2 <= end1 && end2 >= start1)) {
+              hasConflict = true;
+              if (card1) card1.classList.add('conflict');
+              const card2 = document.getElementById(`card-${id2}`);
+              if (card2) card2.classList.add('conflict');
+            }
+          }
+        });
+      });
+      document.getElementById('conflict-warning').classList.toggle('hidden', !hasConflict);
+      const bar = document.getElementById('selection-bar');
+      bar.classList.toggle('translate-y-64', selectedIds.length === 0);
+      bar.classList.toggle('translate-y-0', selectedIds.length > 0);
+      // 選択済み公演の生成
+      const container = document.getElementById('selected-items');
+      container.innerHTML = selectedIds.map(sid => {
+        const s = allShows.find(sh => sh.id == sid);
+        const startStr = s["開始時間(hh:mm)"] || s.start;
+        const title = s["公演名"] || s.title;
+        const isFamily = (s["予約形式"] || "") === "当日受付(ファミレス式)";
+        const displayTime = isFamily ? "随時" : startStr;
+        const isConflict = document.getElementById(`card-${sid}`)?.classList.contains('conflict');
+        const warningIcon = isConflict ? '<span class="material-symbols-outlined text-[12px] md:text-[14px] text-rose-300 animate-pulse">brightness_alert</span>' : '';
+        return `
+        <div class="relative bg-white/10 border border-white/10 px-3 py-1.5 md:px-4 md:py-2 mt-1.5 md:mt-2 rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-bold flex-none shadow-inner group flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap">
+          <button onclick="toggleShow('${sid}', event)" class="absolute -top-1.5 -right-1 md:-top-2 md:-right-1 bg-slate-700 hover:bg-rose-600 text-white rounded-full w-3.5 h-3.5 md:w-4 md:h-4 flex items-center justify-center text-[8px] md:text-[10px] shadow-md transition-all">×</button>
+          ${warningIcon}
+          <span class="text-accent">${displayTime}</span>
+          <span>${title}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function getOrCreateUserId() {
+      let uid = localStorage.getItem('heatmap_user_id');
+      if (!uid) {
+        uid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+          const r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+        localStorage.setItem('heatmap_user_id', uid);
+      }
+      return uid;
+    }
+
+    async function sendHeatmapData() {
+      try {
+        const userId = getOrCreateUserId();
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ userId, selectedIds })
+        });
+      } catch (e) {
+        console.warn('Heatmap send failed (silent):', e);
+      }
+    }
+
+    function clearSelection() {
+      selectedIds.forEach(id => {
+        const el = document.getElementById(`card-${id}`);
+        if (el) el.classList.remove('selected-card', 'conflict');
+      });
+      selectedIds = [];
+      updateUI();
+      clearTimeout(heatmapDebounceTimer);
+      heatmapDebounceTimer = setTimeout(() => sendHeatmapData(), 3000);
+    }
+
+    function showHashigoTable() {
+      const list = document.getElementById('hashigo-list');
+      const banner = document.getElementById('modal-conflict-banner');
+      list.innerHTML = '';
+      const sel = allShows.filter(s => selectedIds.includes(s.id)).sort((a, b) => {
+        const tA = (a["開始時間(hh:mm)"] || a.start) || "";
+        const tB = (b["開始時間(hh:mm)"] || b.start) || "";
+        return tA.localeCompare(tB);
+      });
+
+      const uniqueDays = [...new Set(sel.map(s => s["日程"] || "1日目"))].sort();
+      const dayLabels = uniqueDays.map(dayStr => {
+        const match = dayStr.match(/(\d+)日目/);
+        if (match) {
+          const num = match[1];
+          return config[`day${num}Label`] || dayStr;
+        }
+        return dayStr;
+      });
+
+      let baseDate = config.date;
+      const rawCleaned = baseDate.replace(/\D/g, "");
+      if (rawCleaned.length === 8) {
+        baseDate = `${rawCleaned.substring(0, 4)}.${rawCleaned.substring(4, 6)}.${rawCleaned.substring(6, 8)}`;
+      }
+
+      if (dayLabels.length > 0) {
+        document.getElementById('modal-fes-date').innerText = `${baseDate} 【${dayLabels.join(' & ')}】`;
+      } else {
+        document.getElementById('modal-fes-date').innerText = baseDate;
+      }
+
+      let overlap = false;
+      for (let i = 0; i < sel.length - 1; i++) {
+        const t1 = sel[i]["予約形式"] || "";
+        const t2 = sel[i + 1]["予約形式"] || "";
+        if (t1 === "当日受付(ファミレス式)" || t1 === "事前予約(時間自由)" || t2 === "当日受付(ファミレス式)" || t2 === "事前予約(時間自由)") continue;
+        const end1 = timeToMinutes(sel[i].endTime || sel[i].end);
+        const start2 = timeToMinutes(sel[i + 1]["開始時間(hh:mm)"] || sel[i + 1].start);
+        if (config.allowZeroMinTransfer) {
+          if (end1 > start2) overlap = true;
+        } else {
+          if (end1 >= start2) overlap = true;
+        }
+      }
+      banner.classList.toggle('hidden', !overlap);
+      sel.forEach(s => {
+        const circle = s["団体名"] || s["サークル名"] || "不明";
+        const venue = s["会場(部屋)"] || s["会場"] || "未定";
+        const title = s["公演名"] || s.title;
+        const startStr = s["開始時間(hh:mm)"] || s.start;
+        const endStr = s.endTime || s.end;
+        const isFamily = (s["予約形式"] || "") === "当日受付(ファミレス式)";
+        const displayTime = isFamily ? "随時受付" : `<span class="material-symbols-outlined text-[13px] mr-0.5">timer</span>${startStr} - ${endStr}`;
+        const accentColorClass = isFamily ? 'bg-orange-500' : 'bg-rose-500';
+
+        list.innerHTML += `
+        <div class="hashigo-card bg-white p-3 rounded-lg shadow-sm border border-main/10 relative overflow-hidden text-left">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 ${accentColorClass}"></div>
+          <div class="ml-2">
+            <div class="flex justify-between items-start mb-1 gap-2">
+              <div class="text-[9px] font-black text-main tracking-tighter leading-tight">${circle}</div>
+              <div class="text-[10px] font-black text-main bg-slate-50 border border-slate-200 px-2 py-0.5 rounded leading-normal whitespace-nowrap flex-shrink-0 flex items-center gap-0.5">
+                <span class="material-symbols-outlined text-[12px]">location_on</span>
+                <span>${venue}</span>
+              </div>
+            </div>
+            <div class="font-black text-sm text-main leading-tight mb-2">${title.replace(/\n/g, '')}</div>
+            <div class="text-[11px] font-black text-slate-500 tracking-tighter">${displayTime}</div>
+          </div>
+        </div>`;
+      });
+
+      document.getElementById('my-schedule-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('my-schedule-modal').classList.add('hidden');
+      //iOS用の案内エリアを空にして隠す
+      const guideContainer = document.getElementById("ios-share-guide");
+      if (guideContainer) {
+        guideContainer.classList.add("hidden");
+        guideContainer.innerHTML = "";
+      }
+    }
+    // --- // --- 画像保存処理 ---
+    async function downloadScheduleImage() {
+      const btn = document.getElementById('download-btn');
+      const area = document.getElementById('capture-area');
+      const originalText = btn.innerHTML;
+
+      btn.innerText = "画像生成中...";
+      btn.disabled = true;
+
+      await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const targetHeight = area.scrollHeight;
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const logoImg = area.querySelector('img');
+
+      try {
+        if (isIOS && logoImg) {
+          // iOS専用：Canvas後合成処理
+          const b64 = cachedLogoBase64 || await preloadLogoAsBase64(logoImg.src);
+          const originalOpacity = logoImg.style.opacity;
+          logoImg.style.opacity = '0';
+
+          const canvas = await htmlToImage.toCanvas(area, {
+            quality: 1.0,
+            pixelRatio: 3,
+            cacheBust: true,
+            height: targetHeight,
+            style: {
+              overflow: 'visible',
+              maxHeight: 'none',
+              height: targetHeight + 'px',
+              borderRadius: '2.5rem'
+            }
+          });
+
+          logoImg.style.opacity = originalOpacity;
+
+          if (b64) {
+            const imgObj = new Image();
+            const loaded = await new Promise((resolve) => {
+              imgObj.onload = () => resolve(true);
+              imgObj.onerror = () => {
+                console.warn("iOS: ロゴ画像の合成用ロードに失敗しました");
+                resolve(false);
+              };
+              imgObj.src = b64;
+            });
+
+            if (loaded) {
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                const ratio = 3;
+                const areaRect = area.getBoundingClientRect();
+                const logoRect = logoImg.getBoundingClientRect();
+
+                const drawX = (logoRect.left - areaRect.left + area.scrollLeft) * ratio;
+                const drawY = (logoRect.top - areaRect.top + area.scrollTop) * ratio;
+                const drawW = logoRect.width * ratio;
+                const drawH = logoRect.height * ratio;
+
+                ctx.drawImage(imgObj, drawX, drawY, drawW, drawH);
+              }
+            }
+          }
+
+          const dataUrl = canvas.toDataURL('image/png', 1.0);
+          if (!dataUrl || dataUrl === 'data:,') throw new Error("CanvasのデータURL生成に失敗しました");
+
+          const link = document.createElement('a');
+          link.download = `my-hashigo-pass-${config.date}.png`;
+          link.href = dataUrl;
+          link.click();
+
+        } else {
+          // PC/Android の場合の通常処理
+          const dataUrl = await htmlToImage.toPng(area, {
+            quality: 1.0,
+            pixelRatio: 3,
+            cacheBust: true,
+            height: targetHeight,
+            style: {
+              overflow: 'visible',
+              maxHeight: 'none',
+              height: targetHeight + 'px',
+              borderRadius: '2.5rem'
+            }
+          });
+          const link = document.createElement('a');
+          link.download = `my-hashigo-pass-${config.date}.png`;
+          link.href = dataUrl;
+          link.click();
+        }
+      } catch (error) {
+        console.error('画像生成エラー:', error);
+        alert("保存に失敗しました。詳細: " + error.message);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // --- SNS投稿処理 ---
+    async function shareScheduleImage() {
+      const btn = document.getElementById('share-btn');
+      const area = document.getElementById('capture-area');
+      const originalText = btn.innerHTML;
+
+      btn.innerHTML = `<span>⏳ 準備中...</span>`;
+      btn.disabled = true;
+
+      await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const targetHeight = area.scrollHeight;
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const logoImg = area.querySelector('img');
+
+      try {
+        let blob;
+
+        if (isIOS && logoImg) {
+          // iOS専用：Canvas後合成処理
+          const b64 = cachedLogoBase64 || await preloadLogoAsBase64(logoImg.src);
+          const originalOpacity = logoImg.style.opacity;
+          logoImg.style.opacity = '0';
+
+          const canvas = await htmlToImage.toCanvas(area, {
+            quality: 1.0,
+            pixelRatio: 3,
+            height: targetHeight,
+            style: {
+              overflow: 'visible',
+              maxHeight: 'none',
+              height: targetHeight + 'px',
+              borderRadius: '2.5rem'
+            }
+          });
+
+          logoImg.style.opacity = originalOpacity;
+
+          if (b64) {
+            const imgObj = new Image();
+            const loaded = await new Promise((resolve) => {
+              imgObj.onload = () => resolve(true);
+              imgObj.onerror = () => resolve(false);
+              imgObj.src = b64;
+            });
+
+            if (loaded) {
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                const ratio = 3;
+                const areaRect = area.getBoundingClientRect();
+                const logoRect = logoImg.getBoundingClientRect();
+
+                const drawX = (logoRect.left - areaRect.left + area.scrollLeft) * ratio;
+                const drawY = (logoRect.top - areaRect.top + area.scrollTop) * ratio;
+                const drawW = logoRect.width * ratio;
+                const drawH = logoRect.height * ratio;
+
+                ctx.drawImage(imgObj, drawX, drawY, drawW, drawH);
+              }
+            }
+          }
+
+          const dataUrl = canvas.toDataURL('image/png', 1.0);
+          if (!dataUrl || dataUrl === 'data:,') throw new Error("CanvasのデータURL生成に失敗しました");
+          blob = await (await fetch(dataUrl)).blob();
+
+        } else {
+          // PC/Android の通常処理
+          blob = await htmlToImage.toBlob(area, {
+            quality: 1.0,
+            pixelRatio: 3,
+            height: targetHeight,
+            style: {
+              overflow: 'visible',
+              maxHeight: 'none',
+              height: targetHeight + 'px',
+              borderRadius: '2.5rem'
+            }
+          });
+        }
+
+        if (!blob) throw new Error("Blobの生成に失敗しました");
+
+        const file = new File([blob], `hashigo-pass-${config.date}.png`, { type: 'image/png' });
+        const shareText = `${config.title}のMyハシゴテーブルを作成したよ！\n${config.hashtag} \n${window.location.href}`;
+
+        const isAndroid = /Android/i.test(navigator.userAgent);
+
+        if (isIOS) {
+          const objectUrl = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.download = `my-hashigo-pass-${config.date}.png`;
+          link.href = objectUrl;
+          link.click();
+          setTimeout(() => { URL.revokeObjectURL(objectUrl); }, 10000);
+
+          const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+          const guideContainer = document.getElementById("ios-share-guide");
+          guideContainer.innerHTML = `
+            <div class="text-xs font-bold text-blue-900 leading-tight">
+              画像が端末に保存されました！<br>下のボタンからXを開いて、<br>保存した画像を添付して投稿してください。
+            </div>
+            <a href="${twitterUrl}" target="_blank" rel="noopener noreferrer" class="mt-1 w-full bg-black text-white py-2.5 rounded-lg font-bold text-sm shadow-md active:scale-95 transition-all flex justify-center items-center gap-1.5">
+              <span style="font-weight:900; font-family:sans-serif;" class="text-[16px]">𝕏</span> Xを開いてポストする
+            </a>
+          `;
+          guideContainer.classList.remove("hidden");
+        } else if (isAndroid && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text: shareText });
+        } else {
+          try {
+            const item = new ClipboardItem({ [blob.type]: blob });
+            await navigator.clipboard.write([item]);
+            alert("画像をクリップボードにコピーしました！\n\nOKを押すとX(Twitter)の投稿画面が開きます。\nテキスト入力欄で「貼り付け (Ctrl+V)」を押して画像を添付してください！");
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+            window.open(twitterUrl, "_blank");
+          } catch (clipboardError) {
+            console.error("クリップボードコピー失敗:", clipboardError);
+            alert("お使いのブラウザは画像の自動コピーに対応していません。\n\n下の「画像を保存する」ボタンから保存して、手動でシェアをお願いします。");
+          }
+        }
+      } catch (error) {
+        console.error('シェア処理エラー:', error);
+        alert("画像の生成に失敗しました。詳細: " + error.message);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // --- 公演の表示・非表示設定モーダルの制御 ---
+    function openHideShowsModal() {
+      renderHideShowsModalList();
+      document.getElementById('hide-shows-modal').classList.remove('hidden');
+    }
+
+    function closeHideShowsModal() {
+      document.getElementById('hide-shows-modal').classList.add('hidden');
+    }
+
+    // 重複を排除した全公演のリストを描画する
+    function renderHideShowsModalList() {
+      const container = document.getElementById('hide-shows-list');
+      container.innerHTML = '';
+
+      // 全公演データをスキャンしてユニークな公演名と団体名を取得
+      const uniqueShows = [];
+      const seenTitles = new Set();
+      allShows.forEach(s => {
+        const title = s["公演名"];
+        if (title && !seenTitles.has(title)) {
+          seenTitles.add(title);
+          uniqueShows.push({
+            title: title,
+            circle: s["団体名"] || s["サークル名"] || "不明"
+          });
+        }
+      });
+
+      // 団体名→公演名の順でソート
+      uniqueShows.sort((a, b) => a.circle.localeCompare(b.circle) || a.title.localeCompare(b.title));
+
+      uniqueShows.forEach((show, index) => {
+        const isChecked = !hiddenShowTitles.has(show.title);
+        const checkboxId = `hide-show-check-${index}`;
+        const labelId = `hide-show-label-${index}`;
+
+        const opacityClass = isChecked ? 'bg-white border-slate-200/80' : 'opacity-50 bg-slate-200/40 border-transparent shadow-none';
+
+        container.innerHTML += `
+          <label id="${labelId}" for="${checkboxId}" 
+            class="flex items-start gap-3 p-3 rounded-md cursor-pointer transition-all border select-none shadow-sm ${opacityClass}">
+            <input type="checkbox" id="${checkboxId}" data-title="${show.title.replace(/"/g, '&quot;')}" ${isChecked ? 'checked' : ''}
+              onchange="toggleLabelStyle(${index}, this.checked)"
+              class="mt-1.5 w-4.5 h-4.5 text-main bg-gray-100 border-gray-300 rounded focus:ring-main focus:ring-2 accent-main">
+            <div class="flex-1">
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">${show.circle}</div>
+              <div class="text-xs font-bold text-main leading-tight">${show.title}</div>
+            </div>
+          </label>
+        `;
+      });
+    }
+
+    // チェック状態によってラベルの透明度（グレーアウト）切り替え
+    function toggleLabelStyle(index, isChecked) {
+      const label = document.getElementById(`hide-show-label-${index}`);
+      if (label) {
+        if (isChecked) {
+          label.classList.remove('opacity-50', 'bg-slate-200/40', 'border-transparent', 'shadow-none');
+          label.classList.add('bg-white', 'border-slate-200/80');
+        } else {
+          label.classList.add('opacity-50', 'bg-slate-200/40', 'border-transparent', 'shadow-none');
+          label.classList.remove('bg-white', 'border-slate-200/80');
+        }
+      }
+    }
+
+    // 設定をリセット（すべて表示）
+    function resetHideShowsModal() {
+      const checkboxes = document.querySelectorAll('#hide-shows-list input[type="checkbox"]');
+      checkboxes.forEach((cb, index) => {
+        cb.checked = true;
+        toggleLabelStyle(index, true);
+      });
+    }
+
+    // 設定を適用
+    function applyHiddenShows() {
+      const checkboxes = document.querySelectorAll('#hide-shows-list input[type="checkbox"]');
+      hiddenShowTitles.clear();
+      checkboxes.forEach(cb => {
+        if (!cb.checked) {
+          hiddenShowTitles.add(cb.getAttribute('data-title'));
+        }
+      });
+
+      closeHideShowsModal();
+      updateHideShowsButton();
+      filterShows(activeDay);
+      updateUI();
+    }
+
+    // 起動ボタンのテキスト（件数バッジ）を更新
+    function updateHideShowsButton() {
+      const btnText = document.getElementById('hide-shows-btn-text');
+      const count = hiddenShowTitles.size;
+      if (count > 0) {
+        btnText.innerText = `公演の表示・非表示設定 (${count}件非表示)`;
+      } else {
+        btnText.innerText = '公演の表示・非表示設定';
+      }
+    }
+
+  </script>
