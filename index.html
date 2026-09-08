@@ -667,6 +667,25 @@
       return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
     }
 
+    function formatSingleDate(str) {
+      if (!str) return "";
+      const digits = str.replace(/\D/g, "");
+      if (digits.length === 8 && str.length === 8) {
+        return `${digits.substring(0, 4)}.${digits.substring(4, 6)}.${digits.substring(6, 8)}`;
+      }
+      return str;
+    }
+
+    function formatFesDate(rawDateStr) {
+      if (!rawDateStr) return "---";
+      const trimmed = String(rawDateStr).trim();
+      const parts = trimmed.split(/[-~～]/);
+      if (parts.length > 1) {
+        return parts.map(part => formatSingleDate(part.trim())).join(" - ");
+      }
+      return formatSingleDate(trimmed);
+    }
+
     // F12覗き見対策:
     function xorDecryptB64(b64, key) {
       if (!b64 || !key) return "";
@@ -792,22 +811,25 @@
         return;
       }
 
+      const rawDateStr = rawConfig["開催日(YYYYMMDD)"] || rawConfig["開催日"] || "";
       config = {
         title: rawConfig["イベント名"] || "タイムテーブル",
         subtitle: rawConfig["サブタイトル"] || "",
-        date: String(rawConfig["開催日(YYYYMMDD)"] || rawConfig["開催日"] || ""),
+        date: String(rawDateStr).replace(/[^a-zA-Z0-9-]/g, ""),
+        displayDate: String(rawDateStr).trim(),
         startHour: parseInt((rawConfig["開始時間(hh:mm)"] || "10:00").split(":")[0], 10),
         endHour: parseInt((rawConfig["終了時間(hh:mm)"] || "20:00").split(":")[0], 10),
         headerUrl: rawConfig["ヘッダー画像URL"] || rawConfig["背景画像URL"] || "",
         stepMin: parseInt(rawConfig["タイムテーブルの刻み幅(分)"] || "30", 10),
         logoUrl: rawConfig["ロゴ画像URL"] || "",
         hashtag: rawConfig["SNSハッシュタグ"] || "#ハッシュタグ",
+        shareText: rawConfig["SNSシェアテキスト"] || "",
         allowZeroMinTransfer: String(rawConfig["0分移動可否"] || "").trim() === '0分移動OK',
         allowSoldOutSelect: String(rawConfig["完売公演の選択可否"] || "").trim() === '選択OK',
         numDays: parseInt(rawConfig["開催日数"] || "1", 10),
-        day1Label: rawConfig["1日目のラベル"] || "1日目",
-        day2Label: rawConfig["2日目のラベル"] || "2日目",
-        day3Label: rawConfig["3日目のラベル"] || "3日目"
+        day1Label: rawConfig["1日目のラベル"] || rawConfig["1日目日程名称"] || "1日目",
+        day2Label: rawConfig["2日目のラベル"] || rawConfig["2日目日程名称"] || "2日目",
+        day3Label: rawConfig["3日目のラベル"] || rawConfig["3日目日程名称"] || "3日目"
       };
 
       allShows = data.shows;
@@ -847,13 +869,7 @@
       }
 
       document.getElementById('modal-hashtag').innerText = config.hashtag;
-      const d = String(config.date);
-      const rawCleaned = d.replace(/\D/g, "");
-      if (rawCleaned.length === 8) {
-        document.getElementById('modal-fes-date').innerText = `${rawCleaned.substring(0, 4)}.${rawCleaned.substring(4, 6)}.${rawCleaned.substring(6, 8)}`;
-      } else {
-        document.getElementById('modal-fes-date').innerText = d;
-      }
+      document.getElementById('modal-fes-date').innerText = formatFesDate(config.displayDate || config.date);
 
       if (config.headerUrl) {
         const processedHeaderUrl = convertDriveUrl(config.headerUrl);
@@ -1053,7 +1069,7 @@
           const soldOutClass = isSoldOut
             ? (config.allowSoldOutSelect ? "opacity-40 grayscale cursor-pointer" : "opacity-40 grayscale pointer-events-none shadow-none")
             : "cursor-pointer";
-          const soldOutBadge = isSoldOut ? `<div class="absolute inset-0 flex items-center justify-center z-10"><span class="bg-slate-700 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-lg transform -rotate-12 uppercase text-center tracking-widest">SOLD OUT</span></div>` : "";
+          const soldOutBadge = isSoldOut ? `<div class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"><span class="bg-slate-700 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-lg transform -rotate-12 uppercase text-center tracking-widest">SOLD OUT</span></div>` : "";
           const showId = show.id || `show-${index}-${Math.random().toString(36).substr(2, 9)}`;
           show.id = showId;
           const currentShowCount = heatmapData[showId] || 0;
@@ -1150,7 +1166,7 @@
           colHtml += `
           <div onclick="${onclickHandler}" id="card-${showId}"
                style="${cardStyle}"
-               class="absolute left-2 right-2 p-4 transition-all duration-300 flex flex-col items-center justify-center timetable-card border border-slate-200 ${soldOutClass} hover:brightness-95 ${cardNoiseClass} ${lockedStateClass}">
+               class="absolute left-2 right-2 p-0.5 transition-all duration-300 flex flex-col items-center justify-center timetable-card border border-slate-200 ${soldOutClass} hover:brightness-95 ${cardNoiseClass} ${lockedStateClass}">
             ${cardNoiseLayer}
             ${soldOutBadge}
             ${cardLockBadge}
@@ -1215,6 +1231,9 @@
           if (i >= j) return;
           const s2 = showsMap.get(id2);
           if (!s2 || (s2["予約形式"] || "") === "当日受付(ファミレス式)" || (s2["予約形式"] || "") === "事前予約(時間自由)") return;
+          const day1 = s1["日程"] || "1日目";
+          const day2 = s2["日程"] || "1日目";
+          if (day1 !== day2) return;
           const start2 = timeToMinutes(s2["開始時間(hh:mm)"] || s2.start);
           const end2 = timeToMinutes(s2.endTime || s2.end);
           if (config.allowZeroMinTransfer) {
@@ -1301,9 +1320,14 @@
       const banner = document.getElementById('modal-conflict-banner');
       list.innerHTML = '';
       const sel = allShows.filter(s => selectedIds.includes(s.id)).sort((a, b) => {
+        const dayA = a["日程"] || "1日目";
+        const dayB = b["日程"] || "1日目";
+        if (dayA !== dayB) {
+          return dayA.localeCompare(dayB);
+        }
         const tA = (a["開始時間(hh:mm)"] || a.start) || "";
         const tB = (b["開始時間(hh:mm)"] || b.start) || "";
-        return tA.localeCompare(tB);
+        return timeToMinutes(tA) - timeToMinutes(tB);
       });
 
       const uniqueDays = [...new Set(sel.map(s => s["日程"] || "1日目"))].sort();
@@ -1316,11 +1340,7 @@
         return dayStr;
       });
 
-      let baseDate = config.date;
-      const rawCleaned = baseDate.replace(/\D/g, "");
-      if (rawCleaned.length === 8) {
-        baseDate = `${rawCleaned.substring(0, 4)}.${rawCleaned.substring(4, 6)}.${rawCleaned.substring(6, 8)}`;
-      }
+      const baseDate = formatFesDate(config.displayDate || config.date);
 
       if (dayLabels.length > 0) {
         document.getElementById('modal-fes-date').innerText = `${baseDate} 【${dayLabels.join(' & ')}】`;
@@ -1330,6 +1350,9 @@
 
       let overlap = false;
       for (let i = 0; i < sel.length - 1; i++) {
+        const d1 = sel[i]["日程"] || "1日目";
+        const d2 = sel[i + 1]["日程"] || "1日目";
+        if (d1 !== d2) continue;
         const t1 = sel[i]["予約形式"] || "";
         const t2 = sel[i + 1]["予約形式"] || "";
         if (t1 === "当日受付(ファミレス式)" || t1 === "事前予約(時間自由)" || t2 === "当日受付(ファミレス式)" || t2 === "事前予約(時間自由)") continue;
@@ -1569,7 +1592,8 @@
         if (!blob) throw new Error("Blobの生成に失敗しました");
 
         const file = new File([blob], `hashigo-pass-${config.date}.png`, { type: 'image/png' });
-        const shareText = `${config.title}のMyハシゴテーブルを作成したよ！\n${config.hashtag} \n${window.location.href}`;
+        const baseText = config.shareText ? config.shareText : `${config.title}のMyハシゴテーブルを作成したよ！`;
+        const shareText = `${baseText}\n${config.hashtag}\n${window.location.href}`;
 
         const isAndroid = /Android/i.test(navigator.userAgent);
 
