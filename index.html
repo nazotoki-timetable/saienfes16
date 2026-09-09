@@ -2539,12 +2539,15 @@ const checkTabsTimer = setInterval(() => {
       const tagsContainer = document.getElementById('popover-content-tags');
       if (tagsContainer) {
         tagsContainer.innerHTML = '';
-        const lines = String(content).split(/\\n|\r?\n/).map(l => l.replace(/^[・\-\s]+/, '').trim()).filter(Boolean);
-        if (lines.length > 0 && lines[0] !== "特になし") {
-          lines.forEach(line => {
+        const tags = String(content)
+          .split(/[\r\n、,，/／・]+/)
+          .map(t => t.trim())
+          .filter(t => t && t !== "特になし" && t !== "なし");
+        if (tags.length > 0) {
+          tags.forEach(tagText => {
             const tag = document.createElement('span');
             tag.className = 'text-[9.5px] font-black bg-white text-[#16131d] border border-[#d8b4fe] rounded px-1.5 py-0.5 leading-tight shadow-sm';
-            tag.innerText = '・' + line;
+            tag.innerText = '・' + tagText;
             tagsContainer.appendChild(tag);
           });
         } else {
