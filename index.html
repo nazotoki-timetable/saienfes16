@@ -1189,38 +1189,76 @@ const checkTabsTimer = setInterval(() => {
       <div class="flex-1 overflow-y-auto pr-1 space-y-4 text-xs text-[#16131e]">
         
         <!-- セクション1: 難易度 -->
-        <div class="bg-[#faf9fd] p-3 rounded border border-[#e2dceb]">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-black text-xs flex items-center gap-1">
+        <div class="bg-[#faf9fd] p-3 rounded border border-[#e2dceb] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-xs flex items-center gap-1 text-[#16131e]">
               <span class="material-symbols-outlined text-[16px] text-[#9333ea]">star</span> 難易度で絞り込む
             </span>
             <span id="filter-diff-summary" class="text-[10px] text-slate-500 font-bold">指定なし</span>
           </div>
 
-          <!-- 難易度数値ピル (1〜10 + ALL) -->
-          <div class="flex flex-col gap-1 mb-2.5">
-            <div class="grid grid-cols-6 gap-1 text-center">
-              <button type="button" onclick="selectDifficulty('ALL')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#16131e] bg-[#16131e] text-white shadow-sm" data-diff="ALL">ALL</button>
-              <button type="button" onclick="selectDifficulty('1')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="1">1</button>
-              <button type="button" onclick="selectDifficulty('2')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="2">2</button>
-              <button type="button" onclick="selectDifficulty('3')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="3">3</button>
-              <button type="button" onclick="selectDifficulty('4')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="4">4</button>
-              <button type="button" onclick="selectDifficulty('5')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="5">5</button>
-            </div>
-            <div class="grid grid-cols-5 gap-1 text-center">
-              <button type="button" onclick="selectDifficulty('6')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="6">6</button>
-              <button type="button" onclick="selectDifficulty('7')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="7">7</button>
-              <button type="button" onclick="selectDifficulty('8')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="8">8</button>
-              <button type="button" onclick="selectDifficulty('9')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="9">9</button>
-              <button type="button" onclick="selectDifficulty('10')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="10">10</button>
-            </div>
-          </div>
+          <!-- 1行UI: [ ALL ] + [ - 3 ▾ + ] + [ 以上 / 以下 ] -->
+          <div class="flex items-center gap-2 pt-0.5 relative">
+            <!-- ALL ボタン -->
+            <button type="button" id="diff-all-btn" onclick="selectDifficulty('ALL')"
+              class="px-3 py-1.5 rounded text-[11px] font-black border border-[#16131e] bg-[#16131e] text-white shadow-sm cursor-pointer transition-all">
+              ALL
+            </button>
 
-          <!-- 以上・以下切り替え（難易度選択時のみ有効） -->
-          <div id="diff-op-group" class="opacity-40 pointer-events-none flex items-center justify-center gap-2 pt-1.5 border-t border-dashed border-[#e2dceb] transition-all">
-            <span class="text-[10px] font-bold text-slate-500">条件:</span>
-            <button type="button" onclick="selectDiffOp('GTE')" id="op-gte-btn" class="flex-1 py-1 rounded text-[11px] font-black border border-[#16131e] bg-[#16131e] text-white cursor-pointer transition-all">以上</button>
-            <button type="button" onclick="selectDiffOp('LTE')" id="op-lte-btn" class="flex-1 py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-600 cursor-pointer transition-all">以下</button>
+            <!-- ステッパー [ - ] [ 3 ▾ ] [ + ] -->
+            <div class="relative flex-1">
+              <div id="diff-stepper-box"
+                class="flex items-center bg-white rounded border border-[#e2dceb] opacity-60 transition-all overflow-hidden shadow-sm">
+                <!-- マイナスボタン -->
+                <button type="button" onclick="stepDifficulty(-1)"
+                  class="w-8 py-1.5 text-slate-700 hover:bg-slate-100 active:bg-slate-200 text-sm font-black transition-all cursor-pointer border-r border-[#e2dceb] flex items-center justify-center select-none">
+                  −
+                </button>
+
+                <!-- 数字ボタン（タップで1〜10ポップアップ） -->
+                <button type="button" onclick="toggleDiffPicker(event)" id="diff-num-btn"
+                  class="flex-1 text-center py-1.5 font-black text-sm text-[#16131e] hover:bg-[#f3e8ff] active:bg-[#e9d5ff] transition-all cursor-pointer flex items-center justify-center gap-0.5 select-none"
+                  title="タップして数字を直接選択">
+                  <span id="diff-current-num" class="text-[15px]">3</span>
+                  <span class="material-symbols-outlined text-[14px] text-slate-400">arrow_drop_down</span>
+                </button>
+
+                <!-- プラスボタン -->
+                <button type="button" onclick="stepDifficulty(1)"
+                  class="w-8 py-1.5 text-slate-700 hover:bg-slate-100 active:bg-slate-200 text-sm font-black transition-all cursor-pointer border-l border-[#e2dceb] flex items-center justify-center select-none">
+                  ＋
+                </button>
+              </div>
+
+              <!-- 1〜10の直接選択ピッカー（ポップアップ） -->
+              <div id="diff-picker-popup"
+                class="hidden absolute top-full left-1/2 -translate-x-1/2 w-52 mt-1.5 bg-white border-2 border-[#16131e] shadow-[4px_4px_0px_#16131e] rounded-[6px] p-2 z-40">
+                <div class="flex items-center justify-between text-[9px] font-black text-slate-400 mb-1.5 px-0.5">
+                  <span>難易度を直接選択 (1〜10)</span>
+                  <button type="button" onclick="closeDiffPicker()" class="text-slate-400 hover:text-slate-700 text-xs font-black cursor-pointer">&times;</button>
+                </div>
+                <div class="grid grid-cols-5 gap-1 text-center">
+                  <button type="button" onclick="pickDifficulty(1)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="1">1</button>
+                  <button type="button" onclick="pickDifficulty(2)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="2">2</button>
+                  <button type="button" onclick="pickDifficulty(3)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="3">3</button>
+                  <button type="button" onclick="pickDifficulty(4)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="4">4</button>
+                  <button type="button" onclick="pickDifficulty(5)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="5">5</button>
+                  <button type="button" onclick="pickDifficulty(6)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="6">6</button>
+                  <button type="button" onclick="pickDifficulty(7)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="7">7</button>
+                  <button type="button" onclick="pickDifficulty(8)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="8">8</button>
+                  <button type="button" onclick="pickDifficulty(9)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="9">9</button>
+                  <button type="button" onclick="pickDifficulty(10)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="10">10</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 以上・以下切り替えスイッチ -->
+            <div id="diff-op-group" class="flex rounded border border-[#16131e] overflow-hidden shrink-0 shadow-[1.5px_1.5px_0px_#16131e] opacity-40 pointer-events-none transition-all">
+              <button type="button" onclick="selectDiffOp('GTE')" id="op-gte-btn"
+                class="px-2.5 py-1.5 text-[10px] font-black bg-[#16131e] text-white cursor-pointer transition-all">以上</button>
+              <button type="button" onclick="selectDiffOp('LTE')" id="op-lte-btn"
+                class="px-2.5 py-1.5 text-[10px] font-black bg-white text-slate-600 cursor-pointer transition-all">以下</button>
+            </div>
           </div>
         </div>
 
@@ -2773,6 +2811,7 @@ const checkTabsTimer = setInterval(() => {
 
     // フィルターモーダルを閉じる
     function closeFilterModal() {
+      closeDiffPicker();
       document.getElementById('filter-modal').classList.add('hidden');
     }
 
@@ -2819,8 +2858,42 @@ const checkTabsTimer = setInterval(() => {
       });
     }
 
+    let currentDiffStepVal = 3;
+
+    function toggleDiffPicker(event) {
+      if (event) event.stopPropagation();
+      const popup = document.getElementById('diff-picker-popup');
+      if (popup) popup.classList.toggle('hidden');
+    }
+
+    function closeDiffPicker() {
+      const popup = document.getElementById('diff-picker-popup');
+      if (popup) popup.classList.add('hidden');
+    }
+
+    function pickDifficulty(num) {
+      closeDiffPicker();
+      currentDiffStepVal = num;
+      filterTargetDiff = String(num);
+      updateDiffUI();
+      updateMatchCountPreview();
+    }
+
+    function stepDifficulty(delta) {
+      closeDiffPicker();
+      if (filterTargetDiff === 'ALL') {
+        filterTargetDiff = String(currentDiffStepVal);
+      } else {
+        currentDiffStepVal = Math.max(1, Math.min(10, currentDiffStepVal + delta));
+        filterTargetDiff = String(currentDiffStepVal);
+      }
+      updateDiffUI();
+      updateMatchCountPreview();
+    }
+
     // 難易度選択
     function selectDifficulty(diff) {
+      closeDiffPicker();
       filterTargetDiff = diff;
       updateDiffUI();
       updateMatchCountPreview();
@@ -2834,36 +2907,62 @@ const checkTabsTimer = setInterval(() => {
     }
 
     function updateDiffUI() {
-      document.querySelectorAll('.diff-btn').forEach(btn => {
-        const d = btn.getAttribute('data-diff');
-        if (d === filterTargetDiff) {
-          btn.className = 'diff-btn py-1 rounded text-[11px] font-black border border-[#16131e] bg-[#16131e] text-white shadow-sm cursor-pointer';
+      const allBtn = document.getElementById('diff-all-btn');
+      const stepperBox = document.getElementById('diff-stepper-box');
+      const numSpan = document.getElementById('diff-current-num');
+      const summary = document.getElementById('filter-diff-summary');
+      const opGroup = document.getElementById('diff-op-group');
+      const gteBtn = document.getElementById('op-gte-btn');
+      const lteBtn = document.getElementById('op-lte-btn');
+
+      if (numSpan) numSpan.innerText = currentDiffStepVal;
+
+      if (filterTargetDiff === 'ALL') {
+        if (allBtn) {
+          allBtn.className = 'px-3 py-1.5 rounded text-[11px] font-black border border-[#16131e] bg-[#16131e] text-white shadow-sm cursor-pointer transition-all';
+        }
+        if (stepperBox) {
+          stepperBox.className = 'flex items-center bg-white rounded border border-[#e2dceb] opacity-60 transition-all overflow-hidden shadow-sm';
+        }
+        if (summary) {
+          summary.innerText = '指定なし';
+          summary.className = 'text-[10px] text-slate-500 font-bold';
+        }
+        if (opGroup) opGroup.classList.add('opacity-40', 'pointer-events-none');
+      } else {
+        if (allBtn) {
+          allBtn.className = 'px-3 py-1.5 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-600 hover:bg-[#f3e8ff] cursor-pointer transition-all';
+        }
+        if (stepperBox) {
+          stepperBox.className = 'flex items-center bg-white rounded border-2 border-[#16131e] shadow-[2px_2px_0px_#16131e] opacity-100 transition-all overflow-hidden';
+        }
+        const opText = filterDiffOp === 'GTE' ? '以上' : '以下';
+        if (summary) {
+          summary.innerText = '難易度 ' + filterTargetDiff + ' ' + opText;
+          summary.className = 'text-[10px] text-[#9333ea] font-black';
+        }
+        if (opGroup) opGroup.classList.remove('opacity-40', 'pointer-events-none');
+      }
+
+      if (gteBtn && lteBtn) {
+        if (filterDiffOp === 'GTE') {
+          gteBtn.className = 'px-2.5 py-1.5 text-[10px] font-black bg-[#16131e] text-white cursor-pointer';
+          lteBtn.className = 'px-2.5 py-1.5 text-[10px] font-black bg-white text-slate-600 cursor-pointer';
         } else {
-          btn.className = 'diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff] cursor-pointer';
+          gteBtn.className = 'px-2.5 py-1.5 text-[10px] font-black bg-white text-slate-600 cursor-pointer';
+          lteBtn.className = 'px-2.5 py-1.5 text-[10px] font-black bg-[#16131e] text-white cursor-pointer';
+        }
+      }
+
+      // 1〜10ピッカー内のハイライト
+      document.querySelectorAll('.picker-num-btn').forEach(btn => {
+        const v = parseInt(btn.getAttribute('data-val'), 10);
+        if (filterTargetDiff !== 'ALL' && v === currentDiffStepVal) {
+          btn.className = 'picker-num-btn py-1 rounded text-xs font-black border border-[#16131e] bg-[#16131e] text-white cursor-pointer';
+        } else {
+          btn.className = 'picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] hover:border-[#16131e] cursor-pointer text-slate-700';
         }
       });
-
-      const opGroup = document.getElementById('diff-op-group');
-      const summary = document.getElementById('filter-diff-summary');
-      if (filterTargetDiff === 'ALL') {
-        opGroup.classList.add('opacity-40', 'pointer-events-none');
-        summary.innerText = '指定なし';
-      } else {
-        opGroup.classList.remove('opacity-40', 'pointer-events-none');
-        const opText = filterDiffOp === 'GTE' ? '以上' : '以下';
-        summary.innerText = '難易度 ' + filterTargetDiff + ' ' + opText;
-        
-        ['GTE', 'LTE'].forEach(op => {
-          const b = document.getElementById('op-' + op.toLowerCase() + '-btn');
-          if (b) {
-            if (op === filterDiffOp) {
-              b.className = 'flex-1 py-1 rounded text-[11px] font-black border border-[#16131e] bg-[#16131e] text-white cursor-pointer transition-all';
-            } else {
-              b.className = 'flex-1 py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-600 cursor-pointer transition-all';
-            }
-          }
-        });
-      }
     }
 
     // プレビュー件数計算
@@ -2916,7 +3015,9 @@ const checkTabsTimer = setInterval(() => {
 
     // リセット（全解除）
     function resetFilterForm() {
+      closeDiffPicker();
       filterTargetDiff = 'ALL';
+      currentDiffStepVal = 3;
       filterDiffOp = 'GTE';
       selectedFilterTags.clear();
       updateDiffUI();
@@ -2953,5 +3054,16 @@ const checkTabsTimer = setInterval(() => {
         }
       }
     }
+
+    // 難易度ピッカーポップアップの外側クリック検知
+    document.addEventListener('click', (e) => {
+      const popup = document.getElementById('diff-picker-popup');
+      const btn = document.getElementById('diff-num-btn');
+      if (popup && !popup.classList.contains('hidden')) {
+        if (!popup.contains(e.target) && !btn.contains(e.target)) {
+          closeDiffPicker();
+        }
+      }
+    });
 
   </script>
