@@ -1015,7 +1015,7 @@ const checkTabsTimer = setInterval(() => {
     <div class="relative max-w-[1800px] mx-auto px-6 pb-40">
 
       
-      <div class="relative guide-area-wrapper mb-2 mt-2">
+      <div class="relative guide-area-wrapper mb-2 mt-2 flex flex-col gap-2">
         <div class="flex items-center justify-between gap-2.5 w-full">
           <!-- 大きく押しやすくなった「使い方」ボタン（遊び心のあるポップな影） -->
           <button onclick="document.getElementById('howto-modal').classList.remove('hidden')"
@@ -1053,6 +1053,14 @@ const checkTabsTimer = setInterval(() => {
           <div id="day-tabs-container" style="display:none !important;"></div>
           <div id="filter-buttons-container" style="display:none !important;"></div>
         </div>
+
+        <!-- 2行目: 横幅いっぱいの公演フィルターボタン（統一感のある美しい佇まい） -->
+        <button id="open-filter-modal-btn" onclick="openFilterModal()"
+          class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded bg-white text-[#16131e] border-2 border-[#16131e] font-black text-xs shadow-[2.5px_2.5px_0px_#16131e] hover:bg-[#faf9fd] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer select-none">
+          <span class="material-symbols-outlined text-[16px] text-[#9333ea]">tune</span>
+          <span>公演フィルター</span>
+          <span id="filter-active-badge" class="hidden ml-1 px-2 py-0.5 bg-[#facc15] text-[#16131e] rounded text-[10px] font-black tracking-tight">適用中 (0公演)</span>
+        </button>
       </div>
 
 
@@ -1157,6 +1165,87 @@ const checkTabsTimer = setInterval(() => {
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  
+  <!-- ============================================================
+       公演フィルターモーダル（チケットパス風）
+       ============================================================ -->
+  <div id="filter-modal" class="fixed inset-0 z-[115] hidden flex items-center justify-center p-4 bg-[#16131e]/70 backdrop-blur-md">
+    <div class="filter-ticket-card bg-white w-full max-w-sm rounded-[6px] border-2 border-[#16131e] shadow-[6px_6px_0px_#16131e] relative p-5 max-h-[90vh] flex flex-col text-left">
+      
+      <!-- ヘッダー -->
+      <div class="flex items-center justify-between pb-3 mb-3 border-b-2 border-dashed border-[#dcd5e7] flex-none">
+        <div>
+          <span class="text-[9px] font-black text-[#9333ea] uppercase tracking-widest block">FILTER</span>
+          <h2 class="font-black text-lg italic tracking-tight text-[#16131e]">公演フィルター</h2>
+        </div>
+        <button onclick="closeFilterModal()" class="w-7 h-7 rounded border border-[#16131e] text-[#16131e] flex items-center justify-center text-sm font-black hover:bg-[#f3e8ff] cursor-pointer">&times;</button>
+      </div>
+
+      <!-- スクロール可能コンテンツ -->
+      <div class="flex-1 overflow-y-auto pr-1 space-y-4 text-xs text-[#16131e]">
+        
+        <!-- セクション1: 難易度 -->
+        <div class="bg-[#faf9fd] p-3 rounded border border-[#e2dceb]">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-black text-xs flex items-center gap-1">
+              <span class="text-[#9333ea]">★</span> 難易度で絞り込む
+            </span>
+            <span id="filter-diff-summary" class="text-[10px] text-slate-500 font-bold">指定なし</span>
+          </div>
+
+          <!-- 難易度数値ピル -->
+          <div class="grid grid-cols-7 gap-1 mb-2.5 text-center">
+            <button type="button" onclick="selectDifficulty('ALL')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#16131e] bg-[#16131e] text-white shadow-sm" data-diff="ALL">ALL</button>
+            <button type="button" onclick="selectDifficulty('1')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="1">1</button>
+            <button type="button" onclick="selectDifficulty('2')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="2">2</button>
+            <button type="button" onclick="selectDifficulty('3')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="3">3</button>
+            <button type="button" onclick="selectDifficulty('4')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="4">4</button>
+            <button type="button" onclick="selectDifficulty('5')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="5">5</button>
+            <button type="button" onclick="selectDifficulty('6')" class="diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff]" data-diff="6">6</button>
+          </div>
+
+          <!-- 以上・以下切り替え（難易度選択時のみ有効） -->
+          <div id="diff-op-group" class="opacity-40 pointer-events-none flex items-center justify-center gap-1.5 pt-1.5 border-t border-dashed border-[#e2dceb] transition-all">
+            <span class="text-[10px] font-bold text-slate-500">条件:</span>
+            <button type="button" onclick="selectDiffOp('GTE')" id="op-gte-btn" class="px-3 py-0.5 rounded text-[10px] font-black border border-[#16131e] bg-[#16131e] text-white cursor-pointer">以上</button>
+            <button type="button" onclick="selectDiffOp('EXACT')" id="op-exact-btn" class="px-3 py-0.5 rounded text-[10px] font-black border border-[#e2dceb] bg-white text-slate-600 cursor-pointer">ピッタリ</button>
+            <button type="button" onclick="selectDiffOp('LTE')" id="op-lte-btn" class="px-3 py-0.5 rounded text-[10px] font-black border border-[#e2dceb] bg-white text-slate-600 cursor-pointer">以下</button>
+          </div>
+        </div>
+
+        <!-- セクション2: 内容目安・ジャンルタグ（完全機会均等の擬似ランダム順） -->
+        <div class="bg-[#faf9fd] p-3 rounded border border-[#e2dceb]">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-black text-xs flex items-center gap-1">
+              <span class="text-[#f97316]">#</span> 内容目安・特徴
+            </span>
+            <span class="text-[9.5px] text-slate-400 font-bold">複数選択可（いずれか一致）</span>
+          </div>
+
+          <!-- タグ一覧（JSで機会均等順に注入） -->
+          <div id="filter-tags-container" class="flex flex-wrap gap-1.5 pt-1">
+            <!-- タグボタン -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- フッター操作部 -->
+      <div class="pt-3 mt-3 border-t-2 border-dashed border-[#dcd5e7] flex items-center gap-2 flex-none">
+        <button type="button" onclick="resetFilterForm()"
+          class="px-3 py-2.5 rounded border border-[#16131e] bg-white text-[#16131e] font-black text-xs hover:bg-slate-100 cursor-pointer">
+          リセット
+        </button>
+        <button type="button" onclick="applyFilterModal()"
+          class="flex-1 py-2.5 rounded bg-[#16131e] text-white font-black text-xs border border-[#16131e] shadow-[2px_2px_0px_rgba(0,0,0,0.3)] hover:opacity-90 active:translate-y-0.5 cursor-pointer flex items-center justify-center gap-1.5">
+          <span>この条件で絞り込む</span>
+          <span id="filter-match-count" class="bg-[#facc15] text-[#16131e] px-1.5 py-0.2 rounded text-[10px] font-black">0件</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -1457,6 +1546,7 @@ const checkTabsTimer = setInterval(() => {
           if (type !== currentFilterType && !type.startsWith(currentFilterType)) return false;
         }
         if (hiddenShowTitles.has(s["公演名"])) return false;
+        if (typeof doesShowMatchFilter === 'function' && !doesShowMatchFilter(s)) return false;
         return true;
       });
       renderTimetable(filteredShows);
@@ -2607,5 +2697,253 @@ const checkTabsTimer = setInterval(() => {
     window.addEventListener('scroll', () => {
       closeShowDetail();
     }, true);
+
+  
+    // ============================================================
+    // --- 公演フィルターエンジン（難易度 ＆ 内容目安タグ） ---
+    // ============================================================
+    let filterTargetDiff = 'ALL';      // 'ALL' または '1'〜'6'
+    let filterDiffOp = 'GTE';          // 'GTE'(以上), 'EXACT'(一致), 'LTE'(以下)
+    const selectedFilterTags = new Set();
+    let allExtractedTags = [];
+    let currentTagRotationOffset = 0;
+
+    // 最大公約数（互いに素なステップを求める用）
+    function gcd(a, b) {
+      while (b !== 0) {
+        let t = b;
+        b = a % b;
+        a = t;
+      }
+      return a;
+    }
+
+    // 全公演からユニークなタグを抽出してソート
+    function extractUniqueTags() {
+      const tagSet = new Set();
+      allShows.forEach(s => {
+        const content = s["内容目安"] || s["内容目安(雰囲気)"] || s["目安"] || s["特徴"] || s["雰囲気"] || "";
+        const tags = String(content).split(/[\r\n、,，/／・]+/).map(t => t.trim()).filter(t => t && t !== "特になし" && t !== "なし");
+        tags.forEach(t => tagSet.add(t));
+      });
+      allExtractedTags = Array.from(tagSet).sort((a, b) => a.localeCompare(b, 'ja'));
+    }
+
+    // 【完全機会均等・偏りのない擬似ランダム順列生成】
+    // 単純乱数だと先頭頻度に統計的偏りが出るため、線形合同巡回（ステップ巡回）を用い、
+    // モーダルを開くたびに全タグが順番に過不足なく等しい頻度で先頭に現れることを数学的に保証する。
+    function getEvenlyDistributedTags() {
+      const total = allExtractedTags.length;
+      if (total <= 1) return [...allExtractedTags];
+
+      // totalと互いに素になる最適なステップ値を決定
+      let step = Math.floor(total * 0.6180339887) || 1; // 黄金比ベース
+      if (step <= 0) step = 1;
+      while (gcd(step, total) !== 1) {
+        step = (step + 1) % total || 1;
+      }
+
+      // オフセットを進める
+      currentTagRotationOffset = (currentTagRotationOffset + step) % total;
+
+      const result = [];
+      for (let i = 0; i < total; i++) {
+        const idx = (currentTagRotationOffset + i * step) % total;
+        result.push(allExtractedTags[idx]);
+      }
+      return result;
+    }
+
+    // フィルターモーダルを開く
+    function openFilterModal() {
+      extractUniqueTags();
+      renderFilterTagsEvenly();
+      updateDiffUI();
+      updateMatchCountPreview();
+      document.getElementById('filter-modal').classList.remove('hidden');
+    }
+
+    // フィルターモーダルを閉じる
+    function closeFilterModal() {
+      document.getElementById('filter-modal').classList.add('hidden');
+    }
+
+    // タグピルの描画（機会均等擬似ランダム）
+    function renderFilterTagsEvenly() {
+      const container = document.getElementById('filter-tags-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const tagsToDisplay = getEvenlyDistributedTags();
+
+      tagsToDisplay.forEach(tag => {
+        const isSelected = selectedFilterTags.has(tag);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = isSelected
+          ? 'px-2.5 py-1 rounded text-[11px] font-black bg-[#9333ea] text-white border border-[#9333ea] shadow-sm cursor-pointer transition-all'
+          : 'px-2.5 py-1 rounded text-[11px] font-black bg-white text-[#16131e] border border-[#dcd5e7] hover:border-[#16131e] shadow-sm cursor-pointer transition-all';
+        btn.innerText = '・' + tag;
+        btn.onclick = () => {
+          if (selectedFilterTags.has(tag)) {
+            selectedFilterTags.delete(tag);
+          } else {
+            selectedFilterTags.add(tag);
+          }
+          // タグの順序は選択時崩さず、見た目だけ更新
+          updateTagButtonStyles();
+          updateMatchCountPreview();
+        };
+        btn.setAttribute('data-tag', tag);
+        container.appendChild(btn);
+      });
+    }
+
+    // ボタンのスタイルのみ更新（再描画による並び順リセットを防止）
+    function updateTagButtonStyles() {
+      const btns = document.querySelectorAll('#filter-tags-container button');
+      btns.forEach(btn => {
+        const tag = btn.getAttribute('data-tag');
+        const isSelected = selectedFilterTags.has(tag);
+        btn.className = isSelected
+          ? 'px-2.5 py-1 rounded text-[11px] font-black bg-[#9333ea] text-white border border-[#9333ea] shadow-sm cursor-pointer transition-all'
+          : 'px-2.5 py-1 rounded text-[11px] font-black bg-white text-[#16131e] border border-[#dcd5e7] hover:border-[#16131e] shadow-sm cursor-pointer transition-all';
+      });
+    }
+
+    // 難易度選択
+    function selectDifficulty(diff) {
+      filterTargetDiff = diff;
+      updateDiffUI();
+      updateMatchCountPreview();
+    }
+
+    // 難易度条件選択
+    function selectDiffOp(op) {
+      filterDiffOp = op;
+      updateDiffUI();
+      updateMatchCountPreview();
+    }
+
+    function updateDiffUI() {
+      document.querySelectorAll('.diff-btn').forEach(btn => {
+        const d = btn.getAttribute('data-diff');
+        if (d === filterTargetDiff) {
+          btn.className = 'diff-btn py-1 rounded text-[11px] font-black border border-[#16131e] bg-[#16131e] text-white shadow-sm cursor-pointer';
+        } else {
+          btn.className = 'diff-btn py-1 rounded text-[11px] font-black border border-[#e2dceb] bg-white text-slate-700 hover:bg-[#f3e8ff] cursor-pointer';
+        }
+      });
+
+      const opGroup = document.getElementById('diff-op-group');
+      const summary = document.getElementById('filter-diff-summary');
+      if (filterTargetDiff === 'ALL') {
+        opGroup.classList.add('opacity-40', 'pointer-events-none');
+        summary.innerText = '指定なし';
+      } else {
+        opGroup.classList.remove('opacity-40', 'pointer-events-none');
+        const opText = filterDiffOp === 'GTE' ? '以上' : (filterDiffOp === 'LTE' ? '以下' : 'ピッタリ');
+        summary.innerText = '難易度 ' + filterTargetDiff + ' ' + opText;
+        
+        ['GTE', 'EXACT', 'LTE'].forEach(op => {
+          const b = document.getElementById('op-' + op.toLowerCase() + '-btn');
+          if (b) {
+            if (op === filterDiffOp) {
+              b.className = 'px-3 py-0.5 rounded text-[10px] font-black border border-[#16131e] bg-[#16131e] text-white cursor-pointer';
+            } else {
+              b.className = 'px-3 py-0.5 rounded text-[10px] font-black border border-[#e2dceb] bg-white text-slate-600 cursor-pointer';
+            }
+          }
+        });
+      }
+    }
+
+    // プレビュー件数計算
+    function updateMatchCountPreview() {
+      let count = 0;
+      const targetShows = allShows.filter(s => (s["日程"] || "1日目") === activeDay);
+      const titles = [...new Set(targetShows.map(s => s["公演名"]))].filter(Boolean);
+
+      titles.forEach(title => {
+        const groupShows = targetShows.filter(s => s["公演名"] === title);
+        const base = groupShows[0];
+        if (doesShowMatchFilter(base)) count++;
+      });
+
+      const countBadge = document.getElementById('filter-match-count');
+      if (countBadge) countBadge.innerText = count + '公演';
+    }
+
+    // 公演が現在のフィルターに合致するか判定
+    function doesShowMatchFilter(show) {
+      // 1. 難易度判定
+      if (filterTargetDiff !== 'ALL') {
+        const targetNum = parseInt(filterTargetDiff, 10);
+        const showDiffStr = show["難易度"] || show["公演難易度"] || show["レベル"] || show["難易度(目安)"] || "";
+        const showDiffNum = parseInt(showDiffStr, 10);
+        if (isNaN(showDiffNum)) return false;
+
+        if (filterDiffOp === 'GTE' && showDiffNum < targetNum) return false;
+        if (filterDiffOp === 'LTE' && showDiffNum > targetNum) return false;
+        if (filterDiffOp === 'EXACT' && showDiffNum !== targetNum) return false;
+      }
+
+      // 2. タグ判定（OR検索：選択タグのうちいずれかを含めばOK）
+      if (selectedFilterTags.size > 0) {
+        const content = show["内容目安"] || show["内容目安(雰囲気)"] || show["目安"] || show["特徴"] || show["雰囲気"] || "";
+        const tags = String(content).split(/[\r\n、,，/／・]+/).map(t => t.trim()).filter(Boolean);
+        const hasAnyTag = Array.from(selectedFilterTags).some(selectedTag => tags.includes(selectedTag));
+        if (!hasAnyTag) return false;
+      }
+
+      return true;
+    }
+
+    // フィルター適用
+    function applyFilterModal() {
+      closeFilterModal();
+      updateFilterTriggerBtn();
+      filterShows(activeDay);
+    }
+
+    // リセット（全解除）
+    function resetFilterForm() {
+      filterTargetDiff = 'ALL';
+      filterDiffOp = 'GTE';
+      selectedFilterTags.clear();
+      updateDiffUI();
+      updateTagButtonStyles();
+      updateMatchCountPreview();
+    }
+
+    function updateFilterTriggerBtn() {
+      const isFiltered = (filterTargetDiff !== 'ALL') || (selectedFilterTags.size > 0);
+      const badge = document.getElementById('filter-active-badge');
+      const btn = document.getElementById('open-filter-modal-btn');
+      
+      if (isFiltered) {
+        // 現在合致している公演数をカウント
+        const targetShows = allShows.filter(s => (s["日程"] || "1日目") === activeDay);
+        const titles = [...new Set(targetShows.map(s => s["公演名"]))].filter(Boolean);
+        let matchCount = 0;
+        titles.forEach(title => {
+          const group = targetShows.filter(s => s["公演名"] === title);
+          if (doesShowMatchFilter(group[0])) matchCount++;
+        });
+
+        if (badge) {
+          badge.innerText = '適用中 (' + matchCount + '公演)';
+          badge.classList.remove('hidden');
+        }
+        if (btn) {
+          btn.classList.add('bg-[#faf9fd]', 'border-[#9333ea]');
+        }
+      } else {
+        if (badge) badge.classList.add('hidden');
+        if (btn) {
+          btn.classList.remove('bg-[#faf9fd]', 'border-[#9333ea]');
+        }
+      }
+    }
 
   </script>
