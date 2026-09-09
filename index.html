@@ -312,661 +312,729 @@
       vertical-align: -0.15em;
 
     }
-  
-/* --- 公演スペックカード（定員・所要・料金）のマイクロインタラクション --- */
-.show-spec-card {
-  box-shadow: 1px 1px 0px rgba(22, 19, 29, 0.25) !important;
-}
-.show-spec-card:hover {
-  box-shadow: 1.5px 1.5px 0px #16131d !important;
-  border-color: #16131d !important;
-  background-color: #faf9fd !important;
-}
-.show-spec-card:active {
-  transform: translate(0.5px, 0.5px) !important;
-  box-shadow: 0px 0px 0px #16131d !important;
-}
-</style>
 
-<style id="playful-fes-styles">
-/* ==========================================================================
+    /* --- 公演スペックカード（定員・所要・料金）のマイクロインタラクション --- */
+    .show-spec-card {
+      box-shadow: 1px 1px 0px rgba(22, 19, 29, 0.25) !important;
+    }
+
+    .show-spec-card:hover {
+      box-shadow: 1.5px 1.5px 0px #16131d !important;
+      border-color: #16131d !important;
+      background-color: #faf9fd !important;
+    }
+
+    .show-spec-card:active {
+      transform: translate(0.5px, 0.5px) !important;
+      box-shadow: 0px 0px 0px #16131d !important;
+    }
+  </style>
+
+  <style id="playful-fes-styles">
+    /* ==========================================================================
    【ロゴ連動：ネオ・ナイトフェス デザインシステム】
    ロゴの「黒 × ネオン紫 × 三日月イエロー × 鳥居オレンジ」と完全調和
    白基調の視認性と親しみやすさを保ちつつ、フェスの世界観を宿す
    ========================================================================== */
 
-:root {
-  --fes-bg: #faf9fd;            /* ほんのり透明感のあるクリーン・ペールラベンダー白 */
-  --fes-card: #ffffff;
-  --fes-dark: #16131e;          /* ロゴ背景に合わせた引き締まった漆黒（ミッドナイトブラック） */
-  --fes-border: #e2dceb;        /* 上品なラベンダーグレー境界線 */
-  --fes-purple: #9333ea;        /* ロゴのネオンパープル */
-  --fes-purple-light: #f3e8ff;  /* 優しい薄紫・ラベンダー */
-  --fes-yellow: #facc15;        /* ロゴの三日月＆星のフェスイエロー */
-  --fes-orange: #f97316;        /* ロゴの鳥居のネオンオレンジ */
-  --fes-shadow: 2.5px 2.5px 0px #16131e; /* ポップなソリッド影 */
-}
+    :root {
+      --fes-bg: #faf9fd;
+      /* ほんのり透明感のあるクリーン・ペールラベンダー白 */
+      --fes-card: #ffffff;
+      --fes-dark: #16131e;
+      /* ロゴ背景に合わせた引き締まった漆黒（ミッドナイトブラック） */
+      --fes-border: #e2dceb;
+      /* 上品なラベンダーグレー境界線 */
+      --fes-purple: #9333ea;
+      /* ロゴのネオンパープル */
+      --fes-purple-light: #f3e8ff;
+      /* 優しい薄紫・ラベンダー */
+      --fes-yellow: #facc15;
+      /* ロゴの三日月＆星のフェスイエロー */
+      --fes-orange: #f97316;
+      /* ロゴの鳥居のネオンオレンジ */
+      --fes-shadow: 2.5px 2.5px 0px #16131e;
+      /* ポップなソリッド影 */
+    }
 
-body {
-  background-color: var(--fes-bg) !important;
-  background-image: radial-gradient(#d5cfe0 0.85px, transparent 0.85px) !important;
-  background-size: 16px 16px !important;
-  color: var(--fes-dark) !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif !important;
-}
+    body {
+      background-color: var(--fes-bg) !important;
+      background-image: radial-gradient(#d5cfe0 0.85px, transparent 0.85px) !important;
+      background-size: 16px 16px !important;
+      color: var(--fes-dark) !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif !important;
+    }
 
-/* --------------------------------------------------------------------------
+    /* --------------------------------------------------------------------------
    極薄ヘッダーバー（白基調 ＆ 漆黒枠線）
    -------------------------------------------------------------------------- */
-#header-bg {
-  background: #ffffff !important;
-  border-bottom: 2px solid var(--fes-dark) !important;
-  padding: 6px 16px !important;
-  height: auto !important;
-  min-height: 44px !important;
-  box-shadow: 0 2px 0px rgba(0,0,0,0.03) !important;
-}
-.header-overlay {
-  padding: 0 !important;
-}
-.title-banner-card {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  padding: 0 !important;
-  max-width: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  text-align: left !important;
-}
-.title-banner-card::before,
-.title-banner-card > div:first-child {
-  display: none !important;
-}
-#fes-title {
-  font-weight: 900 !important;
-  font-size: 1.15rem !important;
-  color: var(--fes-dark) !important;
-  letter-spacing: -0.01em !important;
-  margin: 0 !important;
-  filter: none !important;
-}
-#fes-subtitle {
-  font-size: 10px !important;
-  background: #f3e8ff !important;
-  color: #6b21a8 !important;
-  border: 1px solid var(--fes-border) !important;
-  padding: 2px 8px !important;
-  margin-left: 8px !important;
-  border-radius: 3px !important;
-  font-weight: 800 !important;
-  box-shadow: none !important;
-}
+    #header-bg {
+      background: #ffffff !important;
+      border-bottom: 2px solid var(--fes-dark) !important;
+      padding: 6px 16px !important;
+      height: auto !important;
+      min-height: 44px !important;
+      box-shadow: 0 2px 0px rgba(0, 0, 0, 0.03) !important;
+    }
 
-/* --------------------------------------------------------------------------
+    .header-overlay {
+      padding: 0 !important;
+    }
+
+    .title-banner-card {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      text-align: left !important;
+    }
+
+    .title-banner-card::before,
+    .title-banner-card>div:first-child {
+      display: none !important;
+    }
+
+    #fes-title {
+      font-weight: 900 !important;
+      font-size: 1.15rem !important;
+      color: var(--fes-dark) !important;
+      letter-spacing: -0.01em !important;
+      margin: 0 !important;
+      filter: none !important;
+    }
+
+    #fes-subtitle {
+      font-size: 10px !important;
+      background: #f3e8ff !important;
+      color: #6b21a8 !important;
+      border: 1px solid var(--fes-border) !important;
+      padding: 2px 8px !important;
+      margin-left: 8px !important;
+      border-radius: 3px !important;
+      font-weight: 800 !important;
+      box-shadow: none !important;
+    }
+
+    /* --------------------------------------------------------------------------
    操作部：使い方ボタン ＆ Dayステップスイッチャー
    -------------------------------------------------------------------------- */
-.max-w-\[1800px\] {
-  padding-left: 12px !important;
-  padding-right: 12px !important;
-}
-.guide-area-wrapper {
-  margin-top: 8px !important;
-  margin-bottom: 6px !important;
-}
-#day-tabs-container,
-#filter-buttons-container {
-  display: none !important;
-}
+    .max-w-\[1800px\] {
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+    }
 
-/* 使い方ボタン */
-.playful-btn {
-  box-shadow: var(--fes-shadow) !important;
-  border-radius: 4px !important;
-  height: 42px !important;
-}
-.playful-btn:hover {
-  transform: translate(-1px, -1px) !important;
-  box-shadow: 3.5px 3.5px 0px var(--fes-dark) !important;
-}
-.playful-btn:active {
-  transform: translate(1px, 1px) !important;
-  box-shadow: 1px 1px 0px var(--fes-dark) !important;
-}
+    .guide-area-wrapper {
+      margin-top: 8px !important;
+      margin-bottom: 6px !important;
+    }
 
-/* Dayスイッチャー（左右ボタン ＆ 中央カード） */
-.stepper-nav-btn {
-  width: 42px;
-  height: 42px;
-  background: #ffffff;
-  border: 1.5px solid var(--fes-dark);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--fes-dark);
-  box-shadow: var(--fes-shadow);
-  transition: all 0.1s ease;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.stepper-nav-btn:hover:not(:disabled) {
-  background: #fbfaff;
-  transform: translate(-1px, -1px);
-  box-shadow: 3.5px 3.5px 0px var(--fes-dark);
-}
-.stepper-nav-btn:active:not(:disabled) {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px var(--fes-dark);
-}
-.stepper-nav-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  box-shadow: none;
-  border-color: #cbd5e1;
-}
+    #day-tabs-container,
+    #filter-buttons-container {
+      display: none !important;
+    }
 
-.stepper-center-card {
-  flex: 1;
-  height: 42px;
-  background: #ffffff;
-  border: 1.5px solid var(--fes-dark);
-  border-radius: 4px;
-  padding: 2px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--fes-shadow);
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.15s ease;
-}
-.stepper-center-card:hover {
-  background: #fbfaff;
-  transform: translate(-1px, -1px);
-  box-shadow: 3.5px 3.5px 0px var(--fes-dark);
-}
-.stepper-center-card:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0px var(--fes-dark);
-}
-.stepper-badge {
-  background: var(--fes-dark);
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 900;
-  padding: 1px 6px;
-  border-radius: 3px;
-  letter-spacing: 0.05em;
-}
-.stepper-date {
-  font-size: 13px;
-  font-weight: 900;
-  color: var(--fes-dark);
-  letter-spacing: -0.01em;
-}
-.dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #d5cfe0;
-  transition: all 0.2s ease;
-}
-.dot.active {
-  background: var(--fes-purple);
-  width: 12px;
-  border-radius: 3px;
-}
+    /* 使い方ボタン */
+    .playful-btn {
+      box-shadow: var(--fes-shadow) !important;
+      border-radius: 4px !important;
+      height: 42px !important;
+    }
 
-/* --------------------------------------------------------------------------
+    .playful-btn:hover {
+      transform: translate(-1px, -1px) !important;
+      box-shadow: 3.5px 3.5px 0px var(--fes-dark) !important;
+    }
+
+    .playful-btn:active {
+      transform: translate(1px, 1px) !important;
+      box-shadow: 1px 1px 0px var(--fes-dark) !important;
+    }
+
+    /* Dayスイッチャー（左右ボタン ＆ 中央カード） */
+    .stepper-nav-btn {
+      width: 42px;
+      height: 42px;
+      background: #ffffff;
+      border: 1.5px solid var(--fes-dark);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fes-dark);
+      box-shadow: var(--fes-shadow);
+      transition: all 0.1s ease;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .stepper-nav-btn:hover:not(:disabled) {
+      background: #fbfaff;
+      transform: translate(-1px, -1px);
+      box-shadow: 3.5px 3.5px 0px var(--fes-dark);
+    }
+
+    .stepper-nav-btn:active:not(:disabled) {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0px var(--fes-dark);
+    }
+
+    .stepper-nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      box-shadow: none;
+      border-color: #cbd5e1;
+    }
+
+    .stepper-center-card {
+      flex: 1;
+      height: 42px;
+      background: #ffffff;
+      border: 1.5px solid var(--fes-dark);
+      border-radius: 4px;
+      padding: 2px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--fes-shadow);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .stepper-center-card:hover {
+      background: #fbfaff;
+      transform: translate(-1px, -1px);
+      box-shadow: 3.5px 3.5px 0px var(--fes-dark);
+    }
+
+    .stepper-center-card:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0px var(--fes-dark);
+    }
+
+    .stepper-badge {
+      background: var(--fes-dark);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 1px 6px;
+      border-radius: 3px;
+      letter-spacing: 0.05em;
+    }
+
+    .stepper-date {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--fes-dark);
+      letter-spacing: -0.01em;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #d5cfe0;
+      transition: all 0.2s ease;
+    }
+
+    .dot.active {
+      background: var(--fes-purple);
+      width: 12px;
+      border-radius: 3px;
+    }
+
+    /* --------------------------------------------------------------------------
    タイムテーブル本体：吸着スクロールバー & ソリッド枠線
    -------------------------------------------------------------------------- */
-#table-container {
-  background: #ffffff !important;
-  border: 1.5px solid var(--fes-dark) !important;
-  border-radius: 4px !important;
-  box-shadow: 2px 2px 0px rgba(22, 19, 29, 0.15) !important;
-}
-@media (min-width: 768px) {
-  #top-scrollbar-wrapper {
-    height: 8px !important;
-    margin-bottom: 0px !important;
-    background: #f5f2fa !important;
-    border-top: 1.5px solid var(--fes-dark) !important;
-    border-left: 1.5px solid var(--fes-dark) !important;
-    border-right: 1.5px solid var(--fes-dark) !important;
-    border-bottom: none !important;
-    border-radius: 4px 4px 0 0 !important;
-    overflow-x: auto !important;
-  }
-  #top-scrollbar-content { height: 8px !important; }
-  #top-scrollbar-wrapper::-webkit-scrollbar { height: 8px; }
-  #top-scrollbar-wrapper::-webkit-scrollbar-thumb {
-    background: var(--fes-dark);
-    border-radius: 3px;
-  }
-  #table-container {
-    border-top: none !important;
-    border-radius: 0 0 4px 4px !important;
-  }
-}
-@media (max-width: 767px) {
-  #top-scrollbar-wrapper { display: none !important; }
-}
+    #table-container {
+      background: #ffffff !important;
+      border: 1.5px solid var(--fes-dark) !important;
+      border-radius: 4px !important;
+      box-shadow: 2px 2px 0px rgba(22, 19, 29, 0.15) !important;
+    }
 
-/* 公演カード：マイクロ角丸 & ソリッド枠線 */
-.timetable-card {
-  border-radius: 3px !important;
-  border: 1px solid rgba(22, 19, 29, 0.2) !important;
-  box-shadow: 1px 1px 0px rgba(22, 19, 29, 0.08) !important;
-  transition: transform 0.1s ease !important;
-}
-.timetable-card:active {
-  transform: scale(0.97) !important;
-}
-.timetable-card.selected-card {
-  border: 2px solid var(--fes-dark) !important;
-  box-shadow: 2px 2px 0px var(--fes-dark) !important;
-  transform: translate(-1px, -1px) !important;
-}
+    @media (min-width: 768px) {
+      #top-scrollbar-wrapper {
+        height: 8px !important;
+        margin-bottom: 0px !important;
+        background: #f5f2fa !important;
+        border-top: 1.5px solid var(--fes-dark) !important;
+        border-left: 1.5px solid var(--fes-dark) !important;
+        border-right: 1.5px solid var(--fes-dark) !important;
+        border-bottom: none !important;
+        border-radius: 4px 4px 0 0 !important;
+        overflow-x: auto !important;
+      }
 
-/* --------------------------------------------------------------------------
+      #top-scrollbar-content {
+        height: 8px !important;
+      }
+
+      #top-scrollbar-wrapper::-webkit-scrollbar {
+        height: 8px;
+      }
+
+      #top-scrollbar-wrapper::-webkit-scrollbar-thumb {
+        background: var(--fes-dark);
+        border-radius: 3px;
+      }
+
+      #table-container {
+        border-top: none !important;
+        border-radius: 0 0 4px 4px !important;
+      }
+    }
+
+    @media (max-width: 767px) {
+      #top-scrollbar-wrapper {
+        display: none !important;
+      }
+    }
+
+    /* 公演カード：マイクロ角丸 & ソリッド枠線 */
+    .timetable-card {
+      border-radius: 3px !important;
+      border: 1px solid rgba(22, 19, 29, 0.2) !important;
+      box-shadow: 1px 1px 0px rgba(22, 19, 29, 0.08) !important;
+      transition: transform 0.1s ease !important;
+    }
+
+    .timetable-card:active {
+      transform: scale(0.97) !important;
+    }
+
+    .timetable-card.selected-card {
+      border: 2px solid var(--fes-dark) !important;
+      box-shadow: 2px 2px 0px var(--fes-dark) !important;
+      transform: translate(-1px, -1px) !important;
+    }
+
+    /* --------------------------------------------------------------------------
    下部操作バー：フロスト作戦ドック
    -------------------------------------------------------------------------- */
-#selection-bar {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  background: rgba(255, 255, 255, 0.96) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: none !important;
-  border-top: 2px solid var(--fes-dark) !important;
-  padding: 10px 16px 18px 16px !important;
-  box-shadow: 0 -4px 16px rgba(22, 19, 29, 0.1) !important;
-  max-width: 100% !important;
-  z-index: 50 !important;
-  color: var(--fes-dark) !important;
-}
-#selected-items > div {
-  background: #ffffff !important;
-  color: var(--fes-dark) !important;
-  border: 1.5px solid var(--fes-dark) !important;
-  border-radius: 4px !important;
-  box-shadow: 2px 2px 0px var(--fes-dark) !important;
-}
-button[onclick="showHashigoTable()"] {
-  border-radius: 4px !important;
-  background: var(--fes-yellow) !important;
-  color: var(--fes-dark) !important;
-  font-weight: 900 !important;
-  border: 1.5px solid var(--fes-dark) !important;
-  padding: 8px 18px !important;
-  box-shadow: 2px 2px 0px var(--fes-dark) !important;
-  transition: all 0.1s ease !important;
-}
-button[onclick="showHashigoTable()"]:hover {
-  transform: translate(-1px, -1px) !important;
-  box-shadow: 3px 3px 0px var(--fes-dark) !important;
-}
-button[onclick="showHashigoTable()"]:active {
-  transform: translate(1px, 1px) !important;
-  box-shadow: 1px 1px 0px var(--fes-dark) !important;
-}
+    #selection-bar {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      background: rgba(255, 255, 255, 0.96) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: none !important;
+      border-top: 2px solid var(--fes-dark) !important;
+      padding: 10px 16px 18px 16px !important;
+      box-shadow: 0 -4px 16px rgba(22, 19, 29, 0.1) !important;
+      max-width: 100% !important;
+      z-index: 50 !important;
+      color: var(--fes-dark) !important;
+    }
 
-/* --------------------------------------------------------------------------
+    #selected-items>div {
+      background: #ffffff !important;
+      color: var(--fes-dark) !important;
+      border: 1.5px solid var(--fes-dark) !important;
+      border-radius: 4px !important;
+      box-shadow: 2px 2px 0px var(--fes-dark) !important;
+    }
+
+    button[onclick="showHashigoTable()"] {
+      border-radius: 4px !important;
+      background: var(--fes-yellow) !important;
+      color: var(--fes-dark) !important;
+      font-weight: 900 !important;
+      border: 1.5px solid var(--fes-dark) !important;
+      padding: 8px 18px !important;
+      box-shadow: 2px 2px 0px var(--fes-dark) !important;
+      transition: all 0.1s ease !important;
+    }
+
+    button[onclick="showHashigoTable()"]:hover {
+      transform: translate(-1px, -1px) !important;
+      box-shadow: 3px 3px 0px var(--fes-dark) !important;
+    }
+
+    button[onclick="showHashigoTable()"]:active {
+      transform: translate(1px, 1px) !important;
+      box-shadow: 1px 1px 0px var(--fes-dark) !important;
+    }
+
+    /* --------------------------------------------------------------------------
    HOW TO USE モーダル：チケットパス風（純粋CSS上書き）
    -------------------------------------------------------------------------- */
-#howto-modal {
-  background: rgba(22, 19, 29, 0.72) !important;
-  backdrop-filter: blur(8px) !important;
-}
-#howto-modal > div {
-  border-radius: 6px !important;
-  border: 2px solid var(--fes-dark) !important;
-  box-shadow: 6px 6px 0px var(--fes-dark) !important;
-  position: relative !important;
-  padding: 26px 20px 22px 20px !important;
-  max-width: 360px !important;
-}
+    #howto-modal {
+      background: rgba(22, 19, 29, 0.72) !important;
+      backdrop-filter: blur(8px) !important;
+    }
 
-/* チケット半券ノッチ */
-#howto-modal > div::before,
-#howto-modal > div::after {
-  content: '' !important;
-  position: absolute !important;
-  top: 86px !important;
-  width: 22px !important;
-  height: 22px !important;
-  background: #1e1929 !important;
-  border-radius: 50% !important;
-  border: 2px solid var(--fes-dark) !important;
-  z-index: 20 !important;
-}
-#howto-modal > div::before {
-  left: -12px !important;
-  clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 50% 100%) !important;
-}
-#howto-modal > div::after {
-  right: -12px !important;
-  clip-path: polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%) !important;
-}
+    #howto-modal>div {
+      border-radius: 6px !important;
+      border: 2px solid var(--fes-dark) !important;
+      box-shadow: 6px 6px 0px var(--fes-dark) !important;
+      position: relative !important;
+      padding: 26px 20px 22px 20px !important;
+      max-width: 360px !important;
+    }
 
-/* 閉じるボタン */
-#howto-modal button:first-of-type {
-  top: 14px !important;
-  right: 14px !important;
-  width: 28px !important;
-  height: 28px !important;
-  border-radius: 4px !important;
-  border: 1.5px solid var(--fes-dark) !important;
-  color: var(--fes-dark) !important;
-  font-weight: 900 !important;
-  box-shadow: 1.5px 1.5px 0px var(--fes-dark) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
+    /* チケット半券ノッチ */
+    #howto-modal>div::before,
+    #howto-modal>div::after {
+      content: '' !important;
+      position: absolute !important;
+      top: 86px !important;
+      width: 22px !important;
+      height: 22px !important;
+      background: #1e1929 !important;
+      border-radius: 50% !important;
+      border: 2px solid var(--fes-dark) !important;
+      z-index: 20 !important;
+    }
 
-/* 見出し */
-#howto-modal h2 {
-  color: var(--fes-dark) !important;
-  font-weight: 900 !important;
-  font-size: 1.15rem !important;
-  letter-spacing: -0.01em !important;
-  margin-bottom: 18px !important;
-  padding-bottom: 14px !important;
-  border-bottom: 2px dashed #dcd5e7 !important;
-}
+    #howto-modal>div::before {
+      left: -12px !important;
+      clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 50% 100%) !important;
+    }
 
-/* ステップ項目 */
-#howto-modal .space-y-6 {
-  border-top: none !important;
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 10px !important;
-}
-#howto-modal .space-y-6 > div {
-  background: #faf9fd !important;
-  border: 1px solid #e2dceb !important;
-  border-radius: 4px !important;
-  padding: 10px 12px !important;
-  color: var(--fes-dark) !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
-}
-#howto-modal .space-y-6 > div p {
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  line-height: 1.4 !important;
-}
-#howto-modal .space-y-6 > div:nth-child(1) span {
-  background: var(--fes-purple) !important;
-  color: #ffffff !important;
-  border-radius: 3px !important;
-  font-weight: 900 !important;
-  width: 22px !important;
-  height: 22px !important;
-}
-#howto-modal .space-y-6 > div:nth-child(2) span {
-  background: var(--fes-orange) !important;
-  color: #ffffff !important;
-  border-radius: 3px !important;
-  font-weight: 900 !important;
-  width: 22px !important;
-  height: 22px !important;
-}
-#howto-modal .space-y-6 > div:nth-child(3) span {
-  background: var(--fes-yellow) !important;
-  color: var(--fes-dark) !important;
-  border-radius: 3px !important;
-  font-weight: 900 !important;
-  width: 22px !important;
-  height: 22px !important;
-}
-#howto-modal .space-y-6 > div:nth-child(4) span {
-  background: var(--fes-dark) !important;
-  color: var(--fes-yellow) !important;
-  border: 1px solid var(--fes-dark) !important;
-  border-radius: 3px !important;
-  font-weight: 900 !important;
-  width: auto !important;
-  min-width: 36px !important;
-  height: 22px !important;
-  padding: 0 4px !important;
-  font-size: 9.5px !important;
-  letter-spacing: -0.02em !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
+    #howto-modal>div::after {
+      right: -12px !important;
+      clip-path: polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%) !important;
+    }
 
-/* 注記 */
-#howto-modal .border-dashed {
-  border-color: #dcd5e7 !important;
-  border-top-width: 2px !important;
-  margin-top: 14px !important;
-  padding-top: 10px !important;
-}
-#howto-modal .border-dashed p {
-  color: #716982 !important;
-  font-style: normal !important;
-  font-weight: 600 !important;
-  font-size: 10.5px !important;
-  line-height: 1.4 !important;
-}
+    /* 閉じるボタン */
+    #howto-modal button:first-of-type {
+      top: 14px !important;
+      right: 14px !important;
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 4px !important;
+      border: 1.5px solid var(--fes-dark) !important;
+      color: var(--fes-dark) !important;
+      font-weight: 900 !important;
+      box-shadow: 1.5px 1.5px 0px var(--fes-dark) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
 
-/* 了解ボタン */
-#howto-modal button:last-of-type {
-  border-radius: 4px !important;
-  background: var(--fes-dark) !important;
-  color: #ffffff !important;
-  border: 1.5px solid var(--fes-dark) !important;
-  font-weight: 900 !important;
-  font-size: 12px !important;
-  box-shadow: 3px 3px 0px var(--fes-dark) !important;
-  margin-top: 16px !important;
-  padding: 10px !important;
-  transition: all 0.1s ease !important;
-}
-#howto-modal button:last-of-type:hover {
-  transform: translate(-1px, -1px) !important;
-  box-shadow: 4px 4px 0px var(--fes-dark) !important;
-}
-#howto-modal button:last-of-type:active {
-  transform: translate(1px, 1px) !important;
-  box-shadow: 1px 1px 0px var(--fes-dark) !important;
-}
+    /* 見出し */
+    #howto-modal h2 {
+      color: var(--fes-dark) !important;
+      font-weight: 900 !important;
+      font-size: 1.15rem !important;
+      letter-spacing: -0.01em !important;
+      margin-bottom: 18px !important;
+      padding-bottom: 14px !important;
+      border-bottom: 2px dashed #dcd5e7 !important;
+    }
 
-/* --------------------------------------------------------------------------
+    /* ステップ項目 */
+    #howto-modal .space-y-6 {
+      border-top: none !important;
+      padding-top: 0 !important;
+      margin-top: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+    }
+
+    #howto-modal .space-y-6>div {
+      background: #faf9fd !important;
+      border: 1px solid #e2dceb !important;
+      border-radius: 4px !important;
+      padding: 10px 12px !important;
+      color: var(--fes-dark) !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+
+    #howto-modal .space-y-6>div p {
+      font-size: 12px !important;
+      font-weight: 800 !important;
+      line-height: 1.4 !important;
+    }
+
+    #howto-modal .space-y-6>div:nth-child(1) span {
+      background: var(--fes-purple) !important;
+      color: #ffffff !important;
+      border-radius: 3px !important;
+      font-weight: 900 !important;
+      width: 22px !important;
+      height: 22px !important;
+    }
+
+    #howto-modal .space-y-6>div:nth-child(2) span {
+      background: var(--fes-orange) !important;
+      color: #ffffff !important;
+      border-radius: 3px !important;
+      font-weight: 900 !important;
+      width: 22px !important;
+      height: 22px !important;
+    }
+
+    #howto-modal .space-y-6>div:nth-child(3) span {
+      background: var(--fes-yellow) !important;
+      color: var(--fes-dark) !important;
+      border-radius: 3px !important;
+      font-weight: 900 !important;
+      width: 22px !important;
+      height: 22px !important;
+    }
+
+    #howto-modal .space-y-6>div:nth-child(4) span {
+      background: var(--fes-dark) !important;
+      color: var(--fes-yellow) !important;
+      border: 1px solid var(--fes-dark) !important;
+      border-radius: 3px !important;
+      font-weight: 900 !important;
+      width: auto !important;
+      min-width: 36px !important;
+      height: 22px !important;
+      padding: 0 4px !important;
+      font-size: 9.5px !important;
+      letter-spacing: -0.02em !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    /* 注記 */
+    #howto-modal .border-dashed {
+      border-color: #dcd5e7 !important;
+      border-top-width: 2px !important;
+      margin-top: 14px !important;
+      padding-top: 10px !important;
+    }
+
+    #howto-modal .border-dashed p {
+      color: #716982 !important;
+      font-style: normal !important;
+      font-weight: 600 !important;
+      font-size: 10.5px !important;
+      line-height: 1.4 !important;
+    }
+
+    /* 了解ボタン */
+    #howto-modal button:last-of-type {
+      border-radius: 4px !important;
+      background: var(--fes-dark) !important;
+      color: #ffffff !important;
+      border: 1.5px solid var(--fes-dark) !important;
+      font-weight: 900 !important;
+      font-size: 12px !important;
+      box-shadow: 3px 3px 0px var(--fes-dark) !important;
+      margin-top: 16px !important;
+      padding: 10px !important;
+      transition: all 0.1s ease !important;
+    }
+
+    #howto-modal button:last-of-type:hover {
+      transform: translate(-1px, -1px) !important;
+      box-shadow: 4px 4px 0px var(--fes-dark) !important;
+    }
+
+    #howto-modal button:last-of-type:active {
+      transform: translate(1px, 1px) !important;
+      box-shadow: 1px 1px 0px var(--fes-dark) !important;
+    }
+
+    /* --------------------------------------------------------------------------
    ハシゴテーブルモーダル：『大阪最宴祭16 公式フェスパス（作戦シート）』
    -------------------------------------------------------------------------- */
-#my-schedule-modal {
-  background: rgba(22, 19, 29, 0.72) !important;
-  backdrop-filter: blur(8px) !important;
-}
-#capture-area {
-  background: #ffffff !important;
-  border-radius: 6px !important;
-  border: 2px solid var(--fes-dark) !important;
-  box-shadow: 6px 6px 0px var(--fes-dark) !important;
-  padding: 24px 20px !important;
-  position: relative !important;
-}
-
-/* チケット半券の切り欠きノッチ */
-#capture-area::before,
-#capture-area::after {
-  content: '' !important;
-  position: absolute !important;
-  top: 135px !important;
-  width: 22px !important;
-  height: 22px !important;
-  background: #1e1929 !important;
-  border-radius: 50% !important;
-  border: 2px solid var(--fes-dark) !important;
-  z-index: 20 !important;
-}
-#capture-area::before {
-  left: -12px !important;
-  clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 50% 100%) !important;
-}
-#capture-area::after {
-  right: -12px !important;
-  clip-path: polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%) !important;
-}
-
-#capture-area > div:first-child {
-  border-bottom: 2px dashed #dcd5e7 !important;
-  padding-bottom: 14px !important;
-  margin-bottom: 18px !important;
-}
-#modal-fes-logo {
-  max-width: 175px !important;
-  margin-bottom: 8px !important;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)) !important;
-}
-#modal-fes-date {
-  color: #6b21a8 !important;
-  font-size: 11px !important;
-  letter-spacing: 0.1em !important;
-  font-weight: 800 !important;
-  background: #f3e8ff !important;
-  display: inline-block !important;
-  padding: 2px 10px !important;
-  border-radius: 3px !important;
-  border: 1px solid #d8b4fe !important;
-}
-
-.hashigo-card {
-  border-radius: 4px !important;
-  border: 1.5px solid var(--fes-dark) !important;
-  background: #fcfbfe !important;
-  box-shadow: 2px 2px 0px rgba(22, 19, 29, 0.12) !important;
-}
-.hashigo-card > div:first-child {
-  width: 5px !important;
-  background: var(--fes-purple) !important;
-}
-.hashigo-card div[class*="text-main"] {
-  color: var(--fes-dark) !important;
-}
-.hashigo-card .bg-slate-50 {
-  background: #f3e8ff !important;
-  color: #7e22ce !important;
-  border: 1px solid #d8b4fe !important;
-  border-radius: 3px !important;
-  font-weight: 900 !important;
-}
-
-#capture-area > div:last-child {
-  border-top: 2px dashed #dcd5e7 !important;
-  margin-top: 20px !important;
-  padding-top: 12px !important;
-}
-#modal-hashtag {
-  color: var(--fes-dark) !important;
-  font-size: 13px !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.05em !important;
-}
-
-#share-btn {
-  border-radius: 4px !important;
-  background: var(--fes-dark) !important;
-  color: #ffffff !important;
-  border: 1.5px solid var(--fes-dark) !important;
-  font-weight: 900 !important;
-  box-shadow: 3px 3px 0px rgba(0,0,0,0.3) !important;
-}
-#download-btn {
-  border-radius: 4px !important;
-  background: #ffffff !important;
-  color: var(--fes-dark) !important;
-  border: 1.5px solid var(--fes-dark) !important;
-  font-weight: 900 !important;
-  box-shadow: 3px 3px 0px var(--fes-dark) !important;
-}
-</style>
-
-<script id="playful-stepper-script">
-let currentDayIdx = 0;
-let dayList = [];
-
-function initPlayfulStepper() {
-  const dayTabs = document.querySelectorAll('#day-tabs-container .day-tab-btn');
-  if (!dayTabs || dayTabs.length === 0) return;
-  dayList = [];
-  dayTabs.forEach((tab, i) => {
-    dayList.push({
-      value: (i + 1) + '日目',
-      badge: 'DAY ' + (i + 1),
-      label: tab.innerText.trim(),
-      origBtn: tab
-    });
-  });
-  updateStepperUI();
-}
-
-function stepDay(delta) {
-  if (dayList.length <= 1) return;
-  currentDayIdx += delta;
-  if (currentDayIdx < 0) currentDayIdx = 0;
-  if (currentDayIdx >= dayList.length) currentDayIdx = dayList.length - 1;
-  
-  updateStepperUI();
-
-  if (dayList[currentDayIdx]) {
-    if (dayList[currentDayIdx].origBtn) {
-      dayList[currentDayIdx].origBtn.click();
-    } else if (typeof filterShows === 'function') {
-      filterShows(dayList[currentDayIdx].value);
+    #my-schedule-modal {
+      background: rgba(22, 19, 29, 0.72) !important;
+      backdrop-filter: blur(8px) !important;
     }
-  }
-}
 
-function updateStepperUI() {
-  if (dayList.length === 0) return;
-  const cur = dayList[currentDayIdx];
-  const badgeEl = document.getElementById('stepper-day-badge');
-  const labelEl = document.getElementById('stepper-day-label');
-  const prevBtn = document.getElementById('day-prev-btn');
-  const nextBtn = document.getElementById('day-next-btn');
-  const dotsEl = document.getElementById('stepper-dots');
+    #capture-area {
+      background: #05030b !important;
+      border-radius: 6px !important;
+      border: 2px solid var(--fes-dark) !important;
+      box-shadow: 6px 6px 0px var(--fes-dark) !important;
+      padding: 24px 20px !important;
+      position: relative !important;
+    }
 
-  if (badgeEl) badgeEl.innerText = cur.badge;
-  if (labelEl) labelEl.innerText = cur.label;
+    /* チケット半券の切り欠きノッチ */
+    #capture-area::before,
+    #capture-area::after {
+      content: '' !important;
+      position: absolute !important;
+      top: 135px !important;
+      width: 22px !important;
+      height: 22px !important;
+      background: #1e1929 !important;
+      border-radius: 50% !important;
+      border: 2px solid var(--fes-dark) !important;
+      z-index: 20 !important;
+    }
 
-  if (prevBtn) prevBtn.disabled = (currentDayIdx === 0);
-  if (nextBtn) nextBtn.disabled = (currentDayIdx === dayList.length - 1);
+    #capture-area::before {
+      left: -12px !important;
+      clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 50% 100%) !important;
+    }
 
-  if (dotsEl) {
-    dotsEl.innerHTML = dayList.map((_, i) => 
-      `<span class="dot ${i === currentDayIdx ? 'active' : ''}"></span>`
-    ).join('');
-  }
-}
+    #capture-area::after {
+      right: -12px !important;
+      clip-path: polygon(0% 0%, 50% 0%, 50% 100%, 0% 100%) !important;
+    }
 
-// データ読み込みをポーリング監視して自動初期化
-let retryCount = 0;
-const checkTabsTimer = setInterval(() => {
-  const dayTabs = document.querySelectorAll('#day-tabs-container .day-tab-btn');
-  if (dayTabs && dayTabs.length > 0) {
-    initPlayfulStepper();
-    clearInterval(checkTabsTimer);
-  }
-  retryCount++;
-  if (retryCount > 60) clearInterval(checkTabsTimer);
-}, 100);
-</script>
+    #capture-area>div:first-child {
+      border-bottom: 2px dashed #dcd5e7 !important;
+      padding-bottom: 14px !important;
+      margin-bottom: 18px !important;
+    }
+
+    #modal-fes-logo {
+      max-width: 175px !important;
+      margin-bottom: 8px !important;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1)) !important;
+    }
+
+    #modal-fes-date {
+      color: #6b21a8 !important;
+      font-size: 11px !important;
+      letter-spacing: 0.1em !important;
+      font-weight: 800 !important;
+      background: #f3e8ff !important;
+      display: inline-block !important;
+      padding: 2px 10px !important;
+      border-radius: 3px !important;
+      border: 1px solid #d8b4fe !important;
+    }
+
+    .hashigo-card {
+      border-radius: 4px !important;
+      border: 1.5px solid var(--fes-dark) !important;
+      background: #fcfbfe !important;
+      box-shadow: 2px 2px 0px rgba(22, 19, 29, 0.12) !important;
+    }
+
+    .hashigo-card>div:first-child {
+      width: 5px !important;
+      background: var(--fes-purple) !important;
+    }
+
+    .hashigo-card div[class*="text-main"] {
+      color: var(--fes-dark) !important;
+    }
+
+    .hashigo-card .bg-slate-50 {
+      background: #f3e8ff !important;
+      color: #7e22ce !important;
+      border: 1px solid #d8b4fe !important;
+      border-radius: 3px !important;
+      font-weight: 900 !important;
+    }
+
+    #capture-area>div:last-child {
+      border-top: 2px dashed #dcd5e7 !important;
+      margin-top: 20px !important;
+      padding-top: 12px !important;
+    }
+
+    #modal-hashtag {
+      color: var(--fes-dark) !important;
+      font-size: 13px !important;
+      font-weight: 900 !important;
+      letter-spacing: 0.05em !important;
+    }
+
+    #share-btn {
+      border-radius: 4px !important;
+      background: var(--fes-dark) !important;
+      color: #ffffff !important;
+      border: 1.5px solid var(--fes-dark) !important;
+      font-weight: 900 !important;
+      box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    #download-btn {
+      border-radius: 4px !important;
+      background: #ffffff !important;
+      color: var(--fes-dark) !important;
+      border: 1.5px solid var(--fes-dark) !important;
+      font-weight: 900 !important;
+      box-shadow: 3px 3px 0px var(--fes-dark) !important;
+    }
+  </style>
+
+  <script id="playful-stepper-script">
+    let currentDayIdx = 0;
+    let dayList = [];
+
+    function initPlayfulStepper() {
+      const dayTabs = document.querySelectorAll('#day-tabs-container .day-tab-btn');
+      if (!dayTabs || dayTabs.length === 0) return;
+      dayList = [];
+      dayTabs.forEach((tab, i) => {
+        dayList.push({
+          value: (i + 1) + '日目',
+          badge: 'DAY ' + (i + 1),
+          label: tab.innerText.trim(),
+          origBtn: tab
+        });
+      });
+      updateStepperUI();
+    }
+
+    function stepDay(delta) {
+      if (dayList.length <= 1) return;
+      currentDayIdx += delta;
+      if (currentDayIdx < 0) currentDayIdx = 0;
+      if (currentDayIdx >= dayList.length) currentDayIdx = dayList.length - 1;
+
+      updateStepperUI();
+
+      if (dayList[currentDayIdx]) {
+        if (dayList[currentDayIdx].origBtn) {
+          dayList[currentDayIdx].origBtn.click();
+        } else if (typeof filterShows === 'function') {
+          filterShows(dayList[currentDayIdx].value);
+        }
+      }
+    }
+
+    function updateStepperUI() {
+      if (dayList.length === 0) return;
+      const cur = dayList[currentDayIdx];
+      const badgeEl = document.getElementById('stepper-day-badge');
+      const labelEl = document.getElementById('stepper-day-label');
+      const prevBtn = document.getElementById('day-prev-btn');
+      const nextBtn = document.getElementById('day-next-btn');
+      const dotsEl = document.getElementById('stepper-dots');
+
+      if (badgeEl) badgeEl.innerText = cur.badge;
+      if (labelEl) labelEl.innerText = cur.label;
+
+      if (prevBtn) prevBtn.disabled = (currentDayIdx === 0);
+      if (nextBtn) nextBtn.disabled = (currentDayIdx === dayList.length - 1);
+
+      if (dotsEl) {
+        dotsEl.innerHTML = dayList.map((_, i) =>
+          `<span class="dot ${i === currentDayIdx ? 'active' : ''}"></span>`
+        ).join('');
+      }
+    }
+
+    // データ読み込みをポーリング監視して自動初期化
+    let retryCount = 0;
+    const checkTabsTimer = setInterval(() => {
+      const dayTabs = document.querySelectorAll('#day-tabs-container .day-tab-btn');
+      if (dayTabs && dayTabs.length > 0) {
+        initPlayfulStepper();
+        clearInterval(checkTabsTimer);
+      }
+      retryCount++;
+      if (retryCount > 60) clearInterval(checkTabsTimer);
+    }, 100);
+  </script>
 
 </head>
 
@@ -1014,13 +1082,14 @@ const checkTabsTimer = setInterval(() => {
 
     <div class="relative max-w-[1800px] mx-auto px-6 pb-40">
 
-      
-      <div class="relative guide-area-wrapper mb-2 mt-2 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5">
+
+      <div
+        class="relative guide-area-wrapper mb-2 mt-2 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5">
         <!-- 使い方ボタン（モバイル: order-1, PC: order-1） -->
-        <button onclick="document.getElementById('howto-modal').classList.remove('hidden')"
-          id="playful-howto-btn"
+        <button onclick="document.getElementById('howto-modal').classList.remove('hidden')" id="playful-howto-btn"
           class="order-1 playful-btn flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 md:h-[42px] bg-[#16131d] text-white text-xs font-black uppercase tracking-wider rounded border border-[#16131d] active:translate-y-0.5 transition-all">
-          <span class="w-5 h-5 rounded-full bg-[#c084fc] text-[#16131d] flex items-center justify-center text-[11px] font-black italic shadow-inner">?</span>
+          <span
+            class="w-5 h-5 rounded-full bg-[#c084fc] text-[#16131d] flex items-center justify-center text-[11px] font-black italic shadow-inner">?</span>
           <span class="font-black whitespace-nowrap">使い方</span>
         </button>
 
@@ -1029,15 +1098,18 @@ const checkTabsTimer = setInterval(() => {
           class="order-3 md:order-2 w-full md:w-auto md:ml-auto flex items-center justify-center gap-2 py-2 md:py-0 px-4 md:h-[42px] rounded bg-white text-[#16131e] border-2 border-[#16131e] font-black text-xs shadow-[2.5px_2.5px_0px_#16131e] hover:bg-[#faf9fd] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer select-none">
           <span class="material-symbols-outlined text-[17px] text-[#9333ea]">filter_alt</span>
           <span class="whitespace-nowrap">公演フィルター</span>
-          <span id="filter-active-badge" class="hidden ml-1 px-2 py-0.5 bg-[#facc15] text-[#16131e] rounded text-[10px] font-black tracking-tight">適用中 (0公演)</span>
+          <span id="filter-active-badge"
+            class="hidden ml-1 px-2 py-0.5 bg-[#facc15] text-[#16131e] rounded text-[10px] font-black tracking-tight">適用中
+            (0公演)</span>
         </button>
 
         <!-- 前後スイッチ式 Dayセレクター（モバイル: order-2で1行目右側 / PC: order-3で一番右端） -->
-        <div id="day-stepper" class="order-2 md:order-3 flex-shrink-0 flex items-center justify-end gap-1.5 max-w-xs sm:max-w-sm">
+        <div id="day-stepper"
+          class="order-2 md:order-3 flex-shrink-0 flex items-center justify-end gap-1.5 max-w-xs sm:max-w-sm">
           <button id="day-prev-btn" onclick="stepDay(-1)" class="stepper-nav-btn" title="前の日へ">
             <span class="material-symbols-outlined text-[22px]">chevron_left</span>
           </button>
-          
+
           <div id="day-current-display" onclick="stepDay(1)" class="stepper-center-card" title="タップで次の日へ">
             <div class="flex items-center justify-center gap-2">
               <span id="stepper-day-badge" class="stepper-badge">DAY 1</span>
@@ -1136,23 +1208,29 @@ const checkTabsTimer = setInterval(() => {
     </div>
   </div>
 
-  
+
   <!-- 公演詳細ポップオーバー（難易度 & 内容目安のみに凝縮） -->
   <div id="show-detail-popover" class="fixed z-[150] hidden">
-    <div id="popover-card" class="bg-white rounded-[6px] border-2 border-[#16131d] shadow-[4px_4px_0px_#16131d] p-2.5 w-[220px] relative text-left">
+    <div id="popover-card"
+      class="bg-white rounded-[6px] border-2 border-[#16131d] shadow-[4px_4px_0px_#16131d] p-2.5 w-[220px] relative text-left">
       <!-- 吹き出しの三角ノズル -->
-      <div id="popover-arrow" class="absolute -top-[7px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-t-2 border-l-2 border-[#16131d] transform rotate-45"></div>
-      
+      <div id="popover-arrow"
+        class="absolute -top-[7px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-t-2 border-l-2 border-[#16131d] transform rotate-45">
+      </div>
+
       <!-- 閉じるボタン -->
-      <button onclick="closeShowDetail()" class="absolute top-1.5 right-1.5 w-4 h-4 rounded border border-[#16131d] text-[#16131d] flex items-center justify-center text-[10px] font-black hover:bg-[#f3e8ff] cursor-pointer">&times;</button>
-      
+      <button onclick="closeShowDetail()"
+        class="absolute top-1.5 right-1.5 w-4 h-4 rounded border border-[#16131d] text-[#16131d] flex items-center justify-center text-[10px] font-black hover:bg-[#f3e8ff] cursor-pointer">&times;</button>
+
       <div class="space-y-1.5 pt-0.5">
         <!-- 難易度 -->
         <div class="flex items-center justify-between pr-5">
           <span class="text-[10px] font-black text-[#716982] uppercase tracking-wider shrink-0">難易度</span>
           <div class="flex items-center gap-1">
-            <span id="popover-diff-stars" class="text-[#f59e0b] text-[10px] sm:text-[11px] tracking-tighter whitespace-nowrap">★★★☆☆☆☆☆☆☆</span>
-            <span id="popover-diff-badge" class="bg-[#16131d] text-white text-[10px] font-black px-1.5 py-0.2 rounded shrink-0">3</span>
+            <span id="popover-diff-stars"
+              class="text-[#f59e0b] text-[10px] sm:text-[11px] tracking-tighter whitespace-nowrap">★★★☆☆☆☆☆☆☆</span>
+            <span id="popover-diff-badge"
+              class="bg-[#16131d] text-white text-[10px] font-black px-1.5 py-0.2 rounded shrink-0">3</span>
           </div>
         </div>
 
@@ -1167,25 +1245,28 @@ const checkTabsTimer = setInterval(() => {
     </div>
   </div>
 
-  
+
   <!-- ============================================================
        公演フィルターモーダル（チケットパス風）
        ============================================================ -->
-  <div id="filter-modal" class="fixed inset-0 z-[115] hidden flex items-center justify-center p-4 bg-[#16131e]/70 backdrop-blur-md">
-    <div class="filter-ticket-card bg-white w-full max-w-sm rounded-[6px] border-2 border-[#16131e] shadow-[6px_6px_0px_#16131e] relative p-5 max-h-[90vh] flex flex-col text-left">
-      
+  <div id="filter-modal"
+    class="fixed inset-0 z-[115] hidden flex items-center justify-center p-4 bg-[#16131e]/70 backdrop-blur-md">
+    <div
+      class="filter-ticket-card bg-white w-full max-w-sm rounded-[6px] border-2 border-[#16131e] shadow-[6px_6px_0px_#16131e] relative p-5 max-h-[90vh] flex flex-col text-left">
+
       <!-- ヘッダー -->
       <div class="flex items-center justify-between pb-3 mb-3 border-b-2 border-dashed border-[#dcd5e7] flex-none">
         <h2 class="font-black text-lg italic tracking-tight text-[#16131e] flex items-center gap-1.5">
           <span class="material-symbols-outlined text-[20px] text-[#9333ea]">filter_alt</span>
           <span>公演フィルター</span>
         </h2>
-        <button onclick="closeFilterModal()" class="w-7 h-7 rounded border border-[#16131e] text-[#16131e] flex items-center justify-center text-sm font-black hover:bg-[#f3e8ff] cursor-pointer">&times;</button>
+        <button onclick="closeFilterModal()"
+          class="w-7 h-7 rounded border border-[#16131e] text-[#16131e] flex items-center justify-center text-sm font-black hover:bg-[#f3e8ff] cursor-pointer">&times;</button>
       </div>
 
       <!-- スクロール可能コンテンツ -->
       <div class="flex-1 overflow-y-auto pr-1 space-y-4 text-xs text-[#16131e]">
-        
+
         <!-- セクション1: 難易度 -->
         <div class="bg-[#faf9fd] p-3 rounded border border-[#e2dceb] space-y-2">
           <div class="flex items-center justify-between">
@@ -1233,25 +1314,47 @@ const checkTabsTimer = setInterval(() => {
                 class="hidden absolute top-full left-1/2 -translate-x-1/2 w-52 mt-1.5 bg-white border-2 border-[#16131e] shadow-[4px_4px_0px_#16131e] rounded-[6px] p-2 z-40">
                 <div class="flex items-center justify-between text-[9px] font-black text-slate-400 mb-1.5 px-0.5">
                   <span>難易度を直接選択 (1〜10)</span>
-                  <button type="button" onclick="closeDiffPicker()" class="text-slate-400 hover:text-slate-700 text-xs font-black cursor-pointer">&times;</button>
+                  <button type="button" onclick="closeDiffPicker()"
+                    class="text-slate-400 hover:text-slate-700 text-xs font-black cursor-pointer">&times;</button>
                 </div>
                 <div class="grid grid-cols-5 gap-1 text-center">
-                  <button type="button" onclick="pickDifficulty(1)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="1">1</button>
-                  <button type="button" onclick="pickDifficulty(2)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="2">2</button>
-                  <button type="button" onclick="pickDifficulty(3)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="3">3</button>
-                  <button type="button" onclick="pickDifficulty(4)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="4">4</button>
-                  <button type="button" onclick="pickDifficulty(5)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="5">5</button>
-                  <button type="button" onclick="pickDifficulty(6)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="6">6</button>
-                  <button type="button" onclick="pickDifficulty(7)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="7">7</button>
-                  <button type="button" onclick="pickDifficulty(8)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="8">8</button>
-                  <button type="button" onclick="pickDifficulty(9)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="9">9</button>
-                  <button type="button" onclick="pickDifficulty(10)" class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer" data-val="10">10</button>
+                  <button type="button" onclick="pickDifficulty(1)"
+                    class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer"
+                    data-val="1">1</button>
+                  <button type="button" onclick="pickDifficulty(2)"
+                    class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer"
+                    data-val="2">2</button>
+                  <button type="button" onclick="pickDifficulty(3)"
+                    class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer"
+                    data-val="3">3</button>
+                  <button type="button" onclick="pickDifficulty(4)"
+                    class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer"
+                    data-val="4">4</button>
+                  <button type="button" onclick="pickDifficulty(5)"
+                    class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer"
+                    data-val="5">5</button>
+                  <button type="button" onclick="pickDifficulty(6)"
+                    class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer"
+                    data-val="6">6</button>
+                  <button type="button" onclick="pickDifficulty(7)"
+                    class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer"
+                    data-val="7">7</button>
+                  <button type="button" onclick="pickDifficulty(8)"
+                    class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer"
+                    data-val="8">8</button>
+                  <button type="button" onclick="pickDifficulty(9)"
+                    class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer"
+                    data-val="9">9</button>
+                  <button type="button" onclick="pickDifficulty(10)"
+                    class="picker-num-btn py-1 rounded text-xs font-black border border-[#e2dceb] hover:bg-[#f3e8ff] cursor-pointer"
+                    data-val="10">10</button>
                 </div>
               </div>
             </div>
 
             <!-- 以上・以下切り替えスイッチ -->
-            <div id="diff-op-group" class="flex rounded border border-[#16131e] overflow-hidden shrink-0 shadow-[1.5px_1.5px_0px_#16131e] opacity-40 pointer-events-none transition-all">
+            <div id="diff-op-group"
+              class="flex rounded border border-[#16131e] overflow-hidden shrink-0 shadow-[1.5px_1.5px_0px_#16131e] opacity-40 pointer-events-none transition-all">
               <button type="button" onclick="selectDiffOp('GTE')" id="op-gte-btn"
                 class="px-2.5 py-1.5 text-[10px] font-black bg-[#16131e] text-white cursor-pointer transition-all">以上</button>
               <button type="button" onclick="selectDiffOp('LTE')" id="op-lte-btn"
@@ -1286,7 +1389,8 @@ const checkTabsTimer = setInterval(() => {
         <button type="button" onclick="applyFilterModal()"
           class="flex-1 py-2.5 rounded bg-[#16131e] text-white font-black text-xs border border-[#16131e] shadow-[2px_2px_0px_rgba(0,0,0,0.3)] hover:opacity-90 active:translate-y-0.5 cursor-pointer flex items-center justify-center gap-1.5">
           <span>この条件で絞り込む</span>
-          <span id="filter-match-count" class="bg-[#facc15] text-[#16131e] px-1.5 py-0.2 rounded text-[10px] font-black">0件</span>
+          <span id="filter-match-count"
+            class="bg-[#facc15] text-[#16131e] px-1.5 py-0.2 rounded text-[10px] font-black">0件</span>
         </button>
       </div>
 
@@ -1636,7 +1740,7 @@ const checkTabsTimer = setInterval(() => {
     }
 
     function showError(msg) {
-      document.getElementById('loading-msg').classList.add('hidden'); const st = document.getElementById('status-area'); if(st) st.style.display = 'none';
+      document.getElementById('loading-msg').classList.add('hidden'); const st = document.getElementById('status-area'); if (st) st.style.display = 'none';
       const errDiv = document.getElementById('error-msg');
       errDiv.innerText = msg;
       errDiv.classList.remove('hidden');
@@ -2625,7 +2729,7 @@ const checkTabsTimer = setInterval(() => {
       }
     }
 
-  
+
     // ============================================================
     // --- 公演スペック詳細ポップオーバー（難易度 & 内容目安） ---
     // ============================================================
@@ -2635,12 +2739,12 @@ const checkTabsTimer = setInterval(() => {
       if (event) event.stopPropagation();
       const popover = document.getElementById('show-detail-popover');
       if (!popover) return;
-      
+
       if (currentOpenSpecCard === cardEl && !popover.classList.contains('hidden')) {
         closeShowDetail();
         return;
       }
-      
+
       const title = decodeURIComponent(encodedTitle);
       const show = allShows.find(s => s["公演名"] === title);
       if (!show) return;
@@ -2741,7 +2845,7 @@ const checkTabsTimer = setInterval(() => {
       closeShowDetail();
     }, true);
 
-  
+
     // ============================================================
     // --- 公演フィルターエンジン（難易度 ＆ 内容目安タグ） ---
     // ============================================================
@@ -3026,7 +3130,7 @@ const checkTabsTimer = setInterval(() => {
       const isFiltered = (filterTargetDiff !== 'ALL') || (selectedFilterTags.size > 0);
       const badge = document.getElementById('filter-active-badge');
       const btn = document.getElementById('open-filter-modal-btn');
-      
+
       if (isFiltered) {
         // 現在合致している公演数をカウント
         const targetShows = allShows.filter(s => (s["日程"] || "1日目") === activeDay);
