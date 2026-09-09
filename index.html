@@ -1015,52 +1015,50 @@ const checkTabsTimer = setInterval(() => {
     <div class="relative max-w-[1800px] mx-auto px-6 pb-40">
 
       
-      <div class="relative guide-area-wrapper mb-2 mt-2 flex flex-col gap-2">
-        <div class="flex items-center justify-between gap-2.5 w-full">
-          <!-- 大きく押しやすくなった「使い方」ボタン（遊び心のあるポップな影） -->
-          <button onclick="document.getElementById('howto-modal').classList.remove('hidden')"
-            id="playful-howto-btn"
-            class="playful-btn flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 bg-[#16131d] text-white text-xs font-black uppercase tracking-wider rounded border border-[#16131d] active:translate-y-0.5 transition-all">
-            <span class="w-5 h-5 rounded-full bg-[#c084fc] text-[#16131d] flex items-center justify-center text-[11px] font-black italic shadow-inner">?</span>
-            <span class="font-black whitespace-nowrap">使い方</span>
-          </button>
+      <div class="relative guide-area-wrapper mb-2 mt-2 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5">
+        <!-- 使い方ボタン（モバイル: order-1, PC: order-1） -->
+        <button onclick="document.getElementById('howto-modal').classList.remove('hidden')"
+          id="playful-howto-btn"
+          class="order-1 playful-btn flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 md:h-[42px] bg-[#16131d] text-white text-xs font-black uppercase tracking-wider rounded border border-[#16131d] active:translate-y-0.5 transition-all">
+          <span class="w-5 h-5 rounded-full bg-[#c084fc] text-[#16131d] flex items-center justify-center text-[11px] font-black italic shadow-inner">?</span>
+          <span class="font-black whitespace-nowrap">使い方</span>
+        </button>
 
-          <!-- 前後スイッチ式 Dayセレクター（大きく見やすく、片手でポチポチ送れる） -->
-          <div id="day-stepper" class="flex-1 flex items-center justify-end gap-1.5 max-w-xs sm:max-w-sm">
-            <button id="day-prev-btn" onclick="stepDay(-1)" class="stepper-nav-btn" title="前の日へ">
-              <span class="material-symbols-outlined text-[22px]">chevron_left</span>
-            </button>
-            
-            <div id="day-current-display" onclick="stepDay(1)" class="stepper-center-card" title="タップで次の日へ">
-              <div class="flex items-center justify-center gap-2">
-                <span id="stepper-day-badge" class="stepper-badge">DAY 1</span>
-                <span id="stepper-day-label" class="stepper-date">読込中...</span>
-              </div>
-              <!-- インジケータードット -->
-              <div id="stepper-dots" class="flex items-center justify-center gap-1.5 mt-0.5">
-                <span class="dot active"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </div>
-            </div>
-
-            <button id="day-next-btn" onclick="stepDay(1)" class="stepper-nav-btn" title="次の日へ">
-              <span class="material-symbols-outlined text-[22px]">chevron_right</span>
-            </button>
-          </div>
-
-          <!-- 隠し用（既存ロジックがエラーを起こさないように裏に配置） -->
-          <div id="day-tabs-container" style="display:none !important;"></div>
-          <div id="filter-buttons-container" style="display:none !important;"></div>
-        </div>
-
-        <!-- 2行目: 横幅いっぱいの公演フィルターボタン（統一感のある美しい佇まい） -->
+        <!-- 公演フィルターボタン（モバイル: order-3で全幅2行目 / PC: order-2でDAYセレクターの左隣） -->
         <button id="open-filter-modal-btn" onclick="openFilterModal()"
-          class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded bg-white text-[#16131e] border-2 border-[#16131e] font-black text-xs shadow-[2.5px_2.5px_0px_#16131e] hover:bg-[#faf9fd] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer select-none">
+          class="order-3 md:order-2 w-full md:w-auto md:ml-auto flex items-center justify-center gap-2 py-2 md:py-0 px-4 md:h-[42px] rounded bg-white text-[#16131e] border-2 border-[#16131e] font-black text-xs shadow-[2.5px_2.5px_0px_#16131e] hover:bg-[#faf9fd] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer select-none">
           <span class="material-symbols-outlined text-[17px] text-[#9333ea]">filter_alt</span>
-          <span>公演フィルター</span>
+          <span class="whitespace-nowrap">公演フィルター</span>
           <span id="filter-active-badge" class="hidden ml-1 px-2 py-0.5 bg-[#facc15] text-[#16131e] rounded text-[10px] font-black tracking-tight">適用中 (0公演)</span>
         </button>
+
+        <!-- 前後スイッチ式 Dayセレクター（モバイル: order-2で1行目右側 / PC: order-3で一番右端） -->
+        <div id="day-stepper" class="order-2 md:order-3 flex-shrink-0 flex items-center justify-end gap-1.5 max-w-xs sm:max-w-sm">
+          <button id="day-prev-btn" onclick="stepDay(-1)" class="stepper-nav-btn" title="前の日へ">
+            <span class="material-symbols-outlined text-[22px]">chevron_left</span>
+          </button>
+          
+          <div id="day-current-display" onclick="stepDay(1)" class="stepper-center-card" title="タップで次の日へ">
+            <div class="flex items-center justify-center gap-2">
+              <span id="stepper-day-badge" class="stepper-badge">DAY 1</span>
+              <span id="stepper-day-label" class="stepper-date">読込中...</span>
+            </div>
+            <!-- インジケータードット -->
+            <div id="stepper-dots" class="flex items-center justify-center gap-1.5 mt-0.5">
+              <span class="dot active"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+          </div>
+
+          <button id="day-next-btn" onclick="stepDay(1)" class="stepper-nav-btn" title="次の日へ">
+            <span class="material-symbols-outlined text-[22px]">chevron_right</span>
+          </button>
+        </div>
+
+        <!-- 隠し用（既存ロジックがエラーを起こさないように裏に配置） -->
+        <div id="day-tabs-container" style="display:none !important;"></div>
+        <div id="filter-buttons-container" style="display:none !important;"></div>
       </div>
 
 
