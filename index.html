@@ -732,6 +732,22 @@ button[onclick="showHashigoTable()"]:active {
   width: 22px !important;
   height: 22px !important;
 }
+#howto-modal .space-y-6 > div:nth-child(4) span {
+  background: var(--fes-dark) !important;
+  color: var(--fes-yellow) !important;
+  border: 1px solid var(--fes-dark) !important;
+  border-radius: 3px !important;
+  font-weight: 900 !important;
+  width: auto !important;
+  min-width: 36px !important;
+  height: 22px !important;
+  padding: 0 4px !important;
+  font-size: 9.5px !important;
+  letter-spacing: -0.02em !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
 
 /* 注記 */
 #howto-modal .border-dashed {
@@ -1165,14 +1181,15 @@ const checkTabsTimer = setInterval(() => {
             class="bg-main text-white w-6 h-6 rounded-full flex-none font-black text-xs flex items-center justify-center shadow-lg">3</span>
           <p>自分用ハシゴテーブルが出来るよ！計画を立てたり当日の移動に役立ててね！</p>
         </div>
+        <div class="font-bold flex gap-4 items-start"><span
+            class="bg-[#16131e] text-[#facc15] px-1.5 h-[22px] rounded flex-none font-black text-[9.5px] flex items-center justify-center shadow-md uppercase tracking-wider">NEW！</span>
+          <p>各公演の定員・所要エリアをタップすると難易度や内容目安が見れるよ！</p>
+        </div>
       </div>
 
       <div class="mt-4 pt-4 border-t border-dashed border-slate-100 text-left">
         <p class="text-[12px] text-main opacity-70 italic leading-tight">
           ※このハシゴテーブルは公演予約ではございません。予約は各公演の予約ページから。</p>
-        <p class="text-[11px] text-[#16131d] font-bold mt-2 leading-tight flex items-start gap-1">
-          <span class="text-[#9333ea]">💡</span><span>各公演のスペック（定員・所要）をタップすると難易度・内容目安が見れます！</span>
-        </p>
       </div>
       <button onclick="this.closest('#howto-modal').classList.add('hidden')"
         class="w-full mt-10 bg-main text-white py-4 rounded-xl font-[900] shadow-lg text-[10px] uppercase tracking-widest">了解！</button>
