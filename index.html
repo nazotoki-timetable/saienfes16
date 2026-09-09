@@ -312,7 +312,21 @@
       vertical-align: -0.15em;
 
     }
-  </style>
+  
+/* --- 公演スペックカード（定員・所要・料金）のマイクロインタラクション --- */
+.show-spec-card {
+  box-shadow: 1px 1px 0px rgba(22, 19, 29, 0.25) !important;
+}
+.show-spec-card:hover {
+  box-shadow: 1.5px 1.5px 0px #16131d !important;
+  border-color: #16131d !important;
+  background-color: #faf9fd !important;
+}
+.show-spec-card:active {
+  transform: translate(0.5px, 0.5px) !important;
+  box-shadow: 0px 0px 0px #16131d !important;
+}
+</style>
 
 <style id="playful-fes-styles">
 /* ==========================================================================
@@ -1099,6 +1113,37 @@ const checkTabsTimer = setInterval(() => {
     </div>
   </div>
 
+  
+  <!-- 公演詳細ポップオーバー（難易度 & 内容目安のみに凝縮） -->
+  <div id="show-detail-popover" class="fixed z-[150] hidden">
+    <div id="popover-card" class="bg-white rounded-[6px] border-2 border-[#16131d] shadow-[4px_4px_0px_#16131d] p-2.5 w-[210px] relative text-left">
+      <!-- 吹き出しの三角ノズル -->
+      <div id="popover-arrow" class="absolute -top-[7px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-t-2 border-l-2 border-[#16131d] transform rotate-45"></div>
+      
+      <!-- 閉じるボタン -->
+      <button onclick="closeShowDetail()" class="absolute top-1.5 right-1.5 w-4 h-4 rounded border border-[#16131d] text-[#16131d] flex items-center justify-center text-[10px] font-black hover:bg-[#f3e8ff] cursor-pointer">&times;</button>
+      
+      <div class="space-y-1.5 pt-0.5">
+        <!-- 難易度 -->
+        <div class="flex items-center justify-between pr-5">
+          <span class="text-[10px] font-black text-[#716982] uppercase tracking-wider">難易度</span>
+          <div class="flex items-center gap-1">
+            <span id="popover-diff-stars" class="text-[#f59e0b] text-[11px] tracking-tighter">★★★☆☆☆</span>
+            <span id="popover-diff-badge" class="bg-[#16131d] text-white text-[10px] font-black px-1.5 py-0.2 rounded">3</span>
+          </div>
+        </div>
+
+        <!-- 内容目安 -->
+        <div class="pt-1.5 border-t border-dashed border-[#e2dceb]">
+          <span class="text-[9px] font-black text-[#716982] uppercase tracking-wider block mb-1">内容目安</span>
+          <div id="popover-content-tags" class="flex flex-wrap gap-1">
+            <!-- タグバッジ -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="howto-modal"
     class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
     <div
@@ -1125,6 +1170,9 @@ const checkTabsTimer = setInterval(() => {
       <div class="mt-4 pt-4 border-t border-dashed border-slate-100 text-left">
         <p class="text-[12px] text-main opacity-70 italic leading-tight">
           ※このハシゴテーブルは公演予約ではございません。予約は各公演の予約ページから。</p>
+        <p class="text-[11px] text-[#16131d] font-bold mt-2 leading-tight flex items-start gap-1">
+          <span class="text-[#9333ea]">💡</span><span>各公演のスペック（定員・所要）をタップすると難易度・内容目安が見れます！</span>
+        </p>
       </div>
       <button onclick="this.closest('#howto-modal').classList.add('hidden')"
         class="w-full mt-10 bg-main text-white py-4 rounded-xl font-[900] shadow-lg text-[10px] uppercase tracking-widest">了解！</button>
@@ -1602,8 +1650,8 @@ const checkTabsTimer = setInterval(() => {
       const titleSizeClass = isIOS ? "text-[11px]" : "text-[13px]";
       const infoSizeClass = isIOS ? "text-[8.5px]" : "text-[9.5px]";
       const cSize = isIOS ? "text-[7px]" : "text-[8px]";
-      const headerHeightClass = isIOS ? "h-[245px]" : "h-[230px]";
-      const currentHeaderOffset = isIOS ? 255 : 240;
+      const headerHeightClass = isIOS ? "h-[258px]" : "h-[244px]";
+      const currentHeaderOffset = isIOS ? 268 : 254;
 
       const colHtmls = []; // 文字列結合用
 
@@ -1701,10 +1749,21 @@ const checkTabsTimer = setInterval(() => {
               ${visualHtml}
             </div>
 
-            <div class="relative z-10 space-y-0.5 ${infoSizeClass} uppercase tracking-wider mb-2 font-black flex-none">
-              <div class="flex items-center gap-1.5 text-slate-400 font-medium"><span>定員:</span> <span class="text-main font-black">${capacity}</span></div>
-              <div class="flex items-center gap-1.5 text-slate-400 font-medium"><span>所要:</span> <span class="text-main font-black">${durationDisplay}</span></div>
-              ${priceHtml}
+            <!-- タップで難易度・内容目安が開く一体型スペックカード -->
+            <div onclick="toggleShowDetail(event, '${encodeURIComponent(title)}', this)"
+              class="show-spec-card relative z-10 p-1.5 rounded-[4px] bg-[#faf9fd] hover:bg-[#f3e8ff]/50 border border-[#16131d]/20 hover:border-[#16131d]/40 transition-all cursor-pointer flex flex-col justify-between mb-2 select-none"
+              title="タップで難易度・内容目安を表示">
+              
+              <div class="space-y-0.5 ${infoSizeClass} uppercase tracking-wider font-black">
+                <div class="flex items-center gap-1.5 text-slate-400 font-medium"><span>定員:</span> <span class="text-main font-black">${capacity}</span></div>
+                <div class="flex items-center gap-1.5 text-slate-400 font-medium"><span>所要:</span> <span class="text-main font-black">${durationDisplay}</span></div>
+                ${priceHtml}
+              </div>
+
+              <!-- スペックカード下部に一体化した ∨ マーク -->
+              <div class="flex items-center justify-center pt-1 mt-0.5 border-t border-dashed border-[#dcd5e7]">
+                <span class="material-symbols-outlined text-[15px] leading-none text-[#16131d]/60 group-hover:text-[#16131d]">keyboard_arrow_down</span>
+              </div>
             </div>
 
             <div class="relative z-10 mt-auto mb-1.5 reserve-btn-area">
@@ -2415,5 +2474,118 @@ const checkTabsTimer = setInterval(() => {
         btnText.innerText = '公演の表示・非表示設定';
       }
     }
+
+  
+    // ============================================================
+    // --- 公演スペック詳細ポップオーバー（難易度 & 内容目安） ---
+    // ============================================================
+    let currentOpenSpecCard = null;
+
+    function toggleShowDetail(event, encodedTitle, cardEl) {
+      if (event) event.stopPropagation();
+      const popover = document.getElementById('show-detail-popover');
+      if (!popover) return;
+      
+      if (currentOpenSpecCard === cardEl && !popover.classList.contains('hidden')) {
+        closeShowDetail();
+        return;
+      }
+      
+      const title = decodeURIComponent(encodedTitle);
+      const show = allShows.find(s => s["公演名"] === title);
+      if (!show) return;
+
+      const difficulty = show["難易度"] || show["公演難易度"] || show["レベル"] || show["難易度(目安)"] || "ー";
+      const content = show["内容目安"] || show["内容目安(雰囲気)"] || show["目安"] || show["特徴"] || show["雰囲気"] || "特になし";
+
+      const badgeEl = document.getElementById('popover-diff-badge');
+      if (badgeEl) badgeEl.innerText = difficulty;
+
+      // 星表示（数値の場合）
+      const diffNum = parseInt(difficulty, 10);
+      const starsEl = document.getElementById('popover-diff-stars');
+      if (starsEl) {
+        if (!isNaN(diffNum) && diffNum > 0) {
+          let stars = '';
+          for (let i = 1; i <= 6; i++) {
+            stars += i <= diffNum ? '★' : '☆';
+          }
+          starsEl.innerText = stars;
+          starsEl.style.display = 'inline';
+        } else {
+          starsEl.innerText = difficulty !== "ー" ? difficulty : "";
+          starsEl.style.display = difficulty !== "ー" ? 'inline' : 'none';
+        }
+      }
+
+      // 内容目安のタグ生成
+      const tagsContainer = document.getElementById('popover-content-tags');
+      if (tagsContainer) {
+        tagsContainer.innerHTML = '';
+        const lines = String(content).split(/\\n|\r?\n/).map(l => l.replace(/^[・\-\s]+/, '').trim()).filter(Boolean);
+        if (lines.length > 0 && lines[0] !== "特になし") {
+          lines.forEach(line => {
+            const tag = document.createElement('span');
+            tag.className = 'text-[9.5px] font-black bg-white text-[#16131d] border border-[#d8b4fe] rounded px-1.5 py-0.5 leading-tight shadow-sm';
+            tag.innerText = '・' + line;
+            tagsContainer.appendChild(tag);
+          });
+        } else {
+          tagsContainer.innerHTML = '<span class="text-[9px] text-slate-400 font-bold">情報なし（または設定なし）</span>';
+        }
+      }
+
+      // ポップオーバーの位置計算
+      const rect = cardEl.getBoundingClientRect();
+      const popWidth = 210;
+      let left = rect.left + (rect.width / 2) - (popWidth / 2);
+      let top = rect.bottom + 6;
+
+      // 画面端のオーバーフロー防止
+      if (left < 10) left = 10;
+      if (left + popWidth > window.innerWidth - 10) {
+        left = window.innerWidth - popWidth - 10;
+      }
+
+      // 三角ノズルの位置調整
+      const arrow = document.getElementById('popover-arrow');
+      if (arrow) {
+        const cardCenter = rect.left + (rect.width / 2);
+        const arrowLeft = cardCenter - left;
+        arrow.style.left = Math.max(14, Math.min(popWidth - 14, arrowLeft)) + 'px';
+      }
+
+      popover.style.left = left + 'px';
+      popover.style.top = top + 'px';
+      popover.classList.remove('hidden');
+
+      currentOpenSpecCard = cardEl;
+    }
+
+    function closeShowDetail() {
+      const popover = document.getElementById('show-detail-popover');
+      if (popover) popover.classList.add('hidden');
+      currentOpenSpecCard = null;
+    }
+
+    // 外側タップ・ESCキーで閉じる
+    document.addEventListener('click', (e) => {
+      const popover = document.getElementById('show-detail-popover');
+      if (!popover || popover.classList.contains('hidden')) return;
+      if (!popover.contains(e.target) && !e.target.closest('.show-spec-card')) {
+        closeShowDetail();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeShowDetail();
+      }
+    });
+
+    // テーブルスクロール時にポップオーバーを閉じる
+    window.addEventListener('scroll', () => {
+      closeShowDetail();
+    }, true);
 
   </script>
