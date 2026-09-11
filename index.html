@@ -2392,7 +2392,7 @@
         guideContainer.innerHTML = "";
       }
     }
-    // --- // --- 画像保存処理 ---
+    // --- 画像保存処理 ---
     async function downloadScheduleImage() {
       const btn = document.getElementById('download-btn');
       const area = document.getElementById('capture-area');
@@ -2408,6 +2408,11 @@
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
       const logoImg = area.querySelector('img');
 
+      const filterFn = (node) => {
+        if (node.tagName === 'IMG' && (!node.src || node.src.endsWith('/'))) return false;
+        return true;
+      };
+
       try {
         if (isIOS && logoImg) {
           // iOS専用：Canvas後合成処理
@@ -2419,6 +2424,8 @@
             quality: 1.0,
             pixelRatio: 3,
             cacheBust: true,
+            skipFonts: true,
+            filter: filterFn,
             height: targetHeight,
             style: {
               overflow: 'visible',
@@ -2472,6 +2479,8 @@
             quality: 1.0,
             pixelRatio: 3,
             cacheBust: true,
+            skipFonts: true,
+            filter: filterFn,
             height: targetHeight,
             style: {
               overflow: 'visible',
@@ -2498,10 +2507,15 @@
     async function shareScheduleImage() {
       const btn = document.getElementById('share-btn');
       const area = document.getElementById('capture-area');
+      const guideContainer = document.getElementById('ios-share-guide');
       const originalText = btn.innerHTML;
 
-      btn.innerHTML = `<span>⏳ 準備中...</span>`;
+      btn.innerHTML = `<span>画像生成中...</span>`;
       btn.disabled = true;
+      if (guideContainer) {
+        guideContainer.classList.add('hidden');
+        guideContainer.innerHTML = '';
+      }
 
       await document.fonts.ready;
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -2509,6 +2523,11 @@
       const targetHeight = area.scrollHeight;
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
       const logoImg = area.querySelector('img');
+
+      const filterFn = (node) => {
+        if (node.tagName === 'IMG' && (!node.src || node.src.endsWith('/'))) return false;
+        return true;
+      };
 
       try {
         let blob;
@@ -2522,6 +2541,9 @@
           const canvas = await htmlToImage.toCanvas(area, {
             quality: 1.0,
             pixelRatio: 3,
+            cacheBust: true,
+            skipFonts: true,
+            filter: filterFn,
             height: targetHeight,
             style: {
               overflow: 'visible',
@@ -2567,6 +2589,9 @@
           blob = await htmlToImage.toBlob(area, {
             quality: 1.0,
             pixelRatio: 3,
+            cacheBust: true,
+            skipFonts: true,
+            filter: filterFn,
             height: targetHeight,
             style: {
               overflow: 'visible',
@@ -2579,31 +2604,36 @@
 
         if (!blob) throw new Error("Blobの生成に失敗しました");
 
-        const file = new File([blob], `hashigo-pass-${config.date}.png`, { type: 'image/png' });
+        const fileName = `my-hashigo-pass-${config.date || 'fes'}.png`;
+        const file = new File([blob], fileName, { type: 'image/png' });
         const baseText = config.shareText ? config.shareText : `${config.title}のMyハシゴテーブルを作成したよ！`;
-        const shareText = `${baseText}\n${config.hashtag}\n${window.location.href}`;
+        const hashtag = config.hashtag ? `${config.hashtag}\n` : '';
+        const shareText = `${baseText}\n${hashtag}${window.location.href}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
 
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isIOS) {
           const objectUrl = URL.createObjectURL(blob);
           const link = document.createElement("a");
-          link.download = `my-hashigo-pass-${config.date}.png`;
+          link.download = fileName;
           link.href = objectUrl;
           link.click();
-          setTimeout(() => { URL.revokeObjectURL(objectUrl); }, 10000);
 
-          const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-          const guideContainer = document.getElementById("ios-share-guide");
-          guideContainer.innerHTML = `
-            <div class="text-xs font-bold text-blue-900 leading-tight">
-              画像が端末に保存されました！<br>下のボタンからXを開いて、<br>保存した画像を添付して投稿してください。
-            </div>
-            <a href="${twitterUrl}" target="_blank" rel="noopener noreferrer" class="mt-1 w-full bg-black text-white py-2.5 rounded-lg font-bold text-sm shadow-md active:scale-95 transition-all flex justify-center items-center gap-1.5">
-              <span style="font-weight:900; font-family:sans-serif;" class="text-[16px]">𝕏</span> Xを開いてポストする
-            </a>
-          `;
-          guideContainer.classList.remove("hidden");
+          if (guideContainer) {
+            guideContainer.innerHTML = `
+              <div class="text-xs font-bold text-slate-800 leading-normal text-left">
+                画像をダウンロードしました。<br>
+                下のボタンからXを開き、保存した画像を添付してポストしてください。<br>
+                <span class="text-[10px] text-slate-500">※自動保存されない場合は、下のプレビュー画像を長押しして「写真に追加」してください。</span>
+              </div>
+              <img src="${objectUrl}" alt="Pass Preview" class="max-h-40 mx-auto rounded-xl shadow-md border border-slate-200 object-contain my-1">
+              <a href="${twitterUrl}" target="_blank" rel="noopener noreferrer" class="w-full bg-black text-white py-2.5 rounded-lg font-bold text-sm shadow-md active:scale-95 transition-all flex justify-center items-center gap-1.5">
+                <span>Xを開いてポストする</span>
+              </a>
+            `;
+            guideContainer.classList.remove("hidden");
+          }
         } else if (isAndroid && navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file], text: shareText });
         } else {
@@ -2611,7 +2641,6 @@
             const item = new ClipboardItem({ [blob.type]: blob });
             await navigator.clipboard.write([item]);
             alert("画像をクリップボードにコピーしました！\n\nOKを押すとX(Twitter)の投稿画面が開きます。\nテキスト入力欄で「貼り付け (Ctrl+V)」を押して画像を添付してください！");
-            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
             window.open(twitterUrl, "_blank");
           } catch (clipboardError) {
             console.error("クリップボードコピー失敗:", clipboardError);
