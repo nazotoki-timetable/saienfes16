@@ -2006,7 +2006,7 @@
             </div>
 
             <!-- タップで難易度・内容目安が開く一体型スペックカード -->
-            <div onclick="toggleShowDetail(event, '${encodeURIComponent(title)}', this)"
+            <div onclick="toggleShowDetail(event, '${encodeURIComponent(title).replace(/'/g, "%27")}', this)"
               class="show-spec-card relative z-10 p-1.5 rounded-[4px] bg-[#faf9fd] hover:bg-[#f3e8ff]/50 border border-[#16131d]/20 hover:border-[#16131d]/40 transition-all cursor-pointer flex flex-col justify-between mb-2 select-none"
               title="タップで難易度・内容目安を表示">
               
