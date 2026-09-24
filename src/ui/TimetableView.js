@@ -1,4 +1,4 @@
-﻿import { Parser } from '../core/Parser.js';
+import { Parser } from '../core/Parser.js';
 
 /**
  * メインタイムテーブル（ガントチャート風グリッド）の描画 & スクロール同期
@@ -114,7 +114,7 @@ export class TimetableView {
             ${visualHtml}
           </div>
 
-          <div onclick="toggleShowDetail(event, '${encodeURIComponent(title)}', this)"
+          <div onclick="toggleShowDetail(event, '${encodeURIComponent(title).replace(/'/g, "%27")}', this)"
             class="show-spec-card relative z-10 p-1.5 rounded-[4px] bg-[#faf9fd] hover:bg-[#f3e8ff]/50 border border-[#16131d]/20 hover:border-[#16131d]/40 transition-all cursor-pointer flex flex-col justify-between mb-2 select-none"
             title="タップで難易度・内容目安を表示">
             <div class="space-y-0.5 ${infoSizeClass} uppercase tracking-wider font-black">
