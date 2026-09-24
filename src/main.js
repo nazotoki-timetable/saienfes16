@@ -32,41 +32,75 @@ let hideShowsModal;
 let currentDayIdx = 0;
 let dayList = [];
 
+function applyData(rawData) {
+  if (rawData.heatmap) heatmapData = rawData.heatmap;
+  if (rawData.easterEgg) window.easterEggData = rawData.easterEgg;
+
+  // パース・正規化
+  config = Parser.normalizeConfig(rawData.config || {});
+  allShows = (rawData.shows || []).map((s, idx) => Parser.normalizeShow(s, idx));
+
+  // UIコンポーネントの初期化
+  initUIComponents();
+  initAppDOM();
+  timetableView.syncScrollbars();
+
+  // 保存済みプランの復元
+  const savedPlan = Storage.loadPlan(config.date || 'default');
+  if (savedPlan && savedPlan.length > 0) {
+    selectedIds = savedPlan.filter(id => allShows.some(s => s.id === id));
+    updateUI();
+  }
+}
+
 /**
  * アプリケーションの初期化
  */
 async function bootstrap() {
+  let isRenderedFromCache = false;
+
+  // 1. キャッシュがあれば即座に初期化・描画（0秒化）
+  try {
+    const cachedData = Storage.loadTimetableCache();
+    if (cachedData && cachedData.shows && cachedData.config) {
+      applyData(cachedData);
+      isRenderedFromCache = true;
+    }
+  } catch (err) {
+    console.warn('Cache load error:', err);
+  }
+
+  // 2. ネットワークから最新データを取得
   const params = new URLSearchParams(window.location.search);
   const apiUrlParam = params.get('api');
   
-  // API URLがURLクエリまたはグローバルにあればGasAdapter、なければMockAdapter
   const adapter = (apiUrlParam || window.DEFAULT_API_URL)
     ? new GasAdapter(apiUrlParam || window.DEFAULT_API_URL)
     : new MockAdapter('./mock_data.json');
 
   try {
     const rawData = await adapter.fetchData();
-    if (rawData.heatmap) heatmapData = rawData.heatmap;
-    if (rawData.easterEgg) window.easterEggData = rawData.easterEgg;
+    Storage.saveTimetableCache(rawData);
 
-    // パース・正規化
-    config = Parser.normalizeConfig(rawData.config || {});
-    allShows = (rawData.shows || []).map((s, idx) => Parser.normalizeShow(s, idx));
-
-    // UIコンポーネントの初期化
-    initUIComponents();
-    initAppDOM();
-    timetableView.syncScrollbars();
-
-    // 保存済みプランの復元
-    const savedPlan = Storage.loadPlan(config.date || 'default');
-    if (savedPlan && savedPlan.length > 0) {
-      selectedIds = savedPlan.filter(id => allShows.some(s => s.id === id));
-      updateUI();
+    if (!isRenderedFromCache) {
+      applyData(rawData);
+    } else {
+      // キャッシュ描画済みの場合は最新公演情報（完売など）を安全に更新
+      if (rawData.heatmap) heatmapData = rawData.heatmap;
+      if (rawData.easterEgg) window.easterEggData = rawData.easterEgg;
+      allShows = (rawData.shows || []).map((s, idx) => Parser.normalizeShow(s, idx));
+      config = { ...config, ...Parser.normalizeConfig(rawData.config || {}) };
+      if (typeof filterShows === 'function') {
+        filterShows(activeDay);
+      }
     }
   } catch (err) {
-    console.error('Bootstrap Error:', err);
-    showError('データの読み込みに失敗しました。時間をおいて再読み込みしてください。');
+    if (!isRenderedFromCache) {
+      console.error('Bootstrap Error:', err);
+      showError('データの読み込みに失敗しました。時間をおいて再読み込みしてください。');
+    } else {
+      console.warn('Background sync failed:', err);
+    }
   }
 }
 

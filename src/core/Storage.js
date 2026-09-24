@@ -1,4 +1,4 @@
-﻿/**
+/**
  * LocalStorageの管理クラス（選択状態・ユーザーID・プランの永続化）
  */
 export class Storage {
@@ -23,12 +23,23 @@ export class Storage {
     }
   }
 
-  static loadPlan(eventId) {
+  static saveTimetableCache(data) {
     try {
-      const data = localStorage.getItem(`plan_${eventId}`);
-      return data ? JSON.parse(data) : [];
+      localStorage.setItem('saiensai16_timetable_cache', JSON.stringify(data));
     } catch (e) {
-      return [];
+      console.warn('Failed to save timetable cache:', e);
+    }
+  }
+
+  static loadTimetableCache() {
+    try {
+      const raw = localStorage.getItem('saiensai16_timetable_cache');
+      if (!raw) return null;
+      const cleanJson = raw.trim().replace(/^\uFEFF/, '');
+      return JSON.parse(cleanJson);
+    } catch (e) {
+      console.warn('Failed to load timetable cache:', e);
+      return null;
     }
   }
 }
