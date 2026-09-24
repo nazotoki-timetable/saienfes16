@@ -1074,8 +1074,8 @@
 
           <div class="flex justify-center items-center gap-4 relative z-10">
             <p id="fes-subtitle"
-              class="text-slate-500 font-bold text-[8px] md:text-sm tracking-[0.1em] uppercase bg-white/60 px-2 py-1 md:px-4 md:py-1.5 rounded-full border border-white shadow-sm">
-              データ取得中</p>
+              class="text-slate-600 font-bold text-[9px] md:text-sm tracking-[0.05em] bg-white/80 px-3 py-1 md:px-4 md:py-1.5 rounded-full border border-white shadow-sm">
+              初回読み込みに20〜30秒ほどかかります。このまま少々お待ちください…⌛</p>
           </div>
         </div>
 
@@ -1137,9 +1137,8 @@
 
 
       <div id="status-area" class="text-center py-2">
-        <p id="loading-msg" class="text-slate-400 font-medium animate-pulse text-xs uppercase tracking-widest">
-          Deciphering
-          riddles...</p>
+        <p id="loading-msg" class="text-slate-600 font-bold animate-pulse text-xs md:text-sm tracking-wide bg-white/70 inline-block px-4 py-2 rounded-xl border border-slate-200/60 shadow-sm">
+          初回読み込みに20〜30秒ほどかかります。このまま少々お待ちください…⌛</p>
         <div id="error-msg"
           class="hidden max-w-xl mx-auto bg-rose-50 border border-rose-100 p-6 rounded-3xl text-[#c5304b] font-bold text-sm">
         </div>
@@ -1589,17 +1588,65 @@
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
+      const CACHE_KEY = 'saiensai16_timetable_cache';
+      let isRenderedFromCache = false;
+
+      // 1. キャッシュがあれば即座に描画（2回目以降は0秒で表示）
+      try {
+        const cachedRaw = localStorage.getItem(CACHE_KEY);
+        if (cachedRaw) {
+          const cleanJson = cachedRaw.trim().replace(/^\uFEFF/, '');
+          const cachedData = JSON.parse(cleanJson);
+          if (cachedData && cachedData.shows && cachedData.config) {
+            if (cachedData.heatmap) heatmapData = cachedData.heatmap;
+            if (cachedData.easterEgg) window.easterEggData = cachedData.easterEgg;
+            initApp(cachedData);
+            syncScrollbars();
+            isRenderedFromCache = true;
+          }
+        }
+      } catch (err) {
+        console.warn('Cache read error:', err);
+      }
+
+      // 2. ネットワークから最新データを取得
       try {
         const response = await fetch(API_URL);
         if (!response.ok) throw new Error('ネットワークエラーが発生しました。');
         const data = await response.json();
-        if (data.error) { showError(data.error); return; }
+        if (data.error) {
+          if (!isRenderedFromCache) showError(data.error);
+          return;
+        }
+
+        // 最新データをキャッシュに保存
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        } catch (e) {
+          console.warn('Cache write failed:', e);
+        }
+
         if (data.heatmap) heatmapData = data.heatmap;
         if (data.easterEgg) window.easterEggData = data.easterEgg;
-        initApp(data);
-        syncScrollbars();
+
+        if (!isRenderedFromCache) {
+          initApp(data);
+          syncScrollbars();
+        } else {
+          // キャッシュから描画済みの場合：最新の公演情報（完売状況など）を安全に更新
+          allShows = data.shows;
+          config = { ...config, ...(data.config || {}) };
+          if (typeof filterShows === 'function' && typeof activeDay !== 'undefined') {
+            filterShows(activeDay);
+          }
+        }
       } catch (e) {
-        showError("データの取得に失敗しました。: " + e.message);
+        // キャッシュで表示できている場合は画面エラーにせず、静かにフォールバック
+        if (!isRenderedFromCache) {
+          showError("データの取得に失敗しました。: " + e.message);
+        } else {
+          console.warn('Background sync failed:', e);
+        }
       }
     });
 
