@@ -1454,7 +1454,9 @@
 
         <div id="modal-conflict-banner"
           class="hidden mb-5 p-3 bg-rose-50 rounded-xl text-rose-500 text-[10px] md:text-[11px] font-black border border-rose-200 relative z-10 flex items-center justify-center gap-1.5 shadow-sm">
-          <span class="material-symbols-outlined text-[14px] md:text-[16px] animate-pulse">error</span>
+          <svg class="w-3.5 h-3.5 flex-shrink-0 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
           <span>このチョイスだと時間が被っててハシゴ出来ないよ！</span>
         </div>
 
@@ -2407,7 +2409,9 @@
         const startStr = s["開始時間(hh:mm)"] || s.start;
         const endStr = s.endTime || s.end;
         const isFamily = (s["予約形式"] || "") === "当日受付(ファミレス式)";
-        const displayTime = isFamily ? "随時受付" : `<span class="material-symbols-outlined text-[13px] mr-0.5">timer</span>${startStr} - ${endStr}`;
+        const svgLocation = `<svg class="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+        const svgTimer = `<svg class="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>`;
+        const displayTime = isFamily ? "随時受付" : `<span class="inline-flex items-center gap-1">${svgTimer}<span>${startStr} - ${endStr}</span></span>`;
         const accentColorClass = isFamily ? 'bg-orange-500' : 'bg-rose-500';
 
         list.innerHTML += `
@@ -2416,13 +2420,13 @@
           <div class="ml-2">
             <div class="flex justify-between items-start mb-1 gap-2">
               <div class="text-[9px] font-black text-main tracking-tighter leading-tight">${circle}</div>
-              <div class="text-[10px] font-black text-main bg-slate-50 border border-slate-200 px-2 py-0.5 rounded leading-normal whitespace-nowrap flex-shrink-0 flex items-center gap-0.5">
-                <span class="material-symbols-outlined text-[12px]">location_on</span>
+              <div class="text-[10px] font-black text-main bg-slate-50 border border-slate-200 px-2 py-0.5 rounded leading-normal whitespace-nowrap flex-shrink-0 flex items-center gap-1">
+                ${svgLocation}
                 <span>${venue}</span>
               </div>
             </div>
             <div class="font-black text-sm text-main leading-tight mb-2">${title.replace(/\n/g, '')}</div>
-            <div class="text-[11px] font-black text-slate-500 tracking-tighter">${displayTime}</div>
+            <div class="text-[11px] font-black text-slate-500 tracking-tighter flex items-center">${displayTime}</div>
           </div>
         </div>`;
       });
